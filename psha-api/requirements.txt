@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pydantic
+sqlalchemy
+psycopg2-binary
+numpy<2.0
+pandas
+scipy
+openquake.engine==3.17.1
+alembic
+
+
+
