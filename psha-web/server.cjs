@@ -1,15 +1,20 @@
-const express = require("express");
-const path = require("path");
+// server.cjs
+const express = require('express');
+const path = require('path');
 const app = express();
 
-const PORT = process.env.PORT || 8080; // Railway akan inject PORT otomatis
+// Port Railway akan memberikan lewat env variable
+const PORT = process.env.PORT || 8080;
 
-app.use(express.static(path.join(__dirname, "dist")));
+// Serve folder 'dist' hasil build Vite
+app.use(express.static(path.join(__dirname, 'dist')));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "dist", "index.html"));
+// Catch-all: jika request tidak ketemu file, kirim index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Frontend running on port ${PORT}`);
+  console.log(`Frontend server running on port ${PORT}`);
 });
