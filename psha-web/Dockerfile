@@ -27,4 +27,5 @@ ENV PORT $PORT
 EXPOSE $PORT
 
 # Jalankan server
-CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:$PORT"]
+CMD ["serve", "-s", "dist", "-l", "0.0.0.0", "-p", "$PORT"]
+
