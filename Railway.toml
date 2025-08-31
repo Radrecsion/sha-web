@@ -22,7 +22,7 @@ name = "sha-web"
 path = "psha-web"
 type = "static"
 build_command = "npm install && npm run build"
-start_command = "npx serve -s dist"
+start_command = "npx serve -s dist -l $PORT"
 
 [services.frontend.env]
 VITE_API_URL = "https://sha-api-production.up.railway.app/api/v1"
