@@ -1,11 +1,11 @@
 [project]
-name = "sha-web"
+name = "psha-web"
 
 # =========================
-# Backend FastAPI + OpenQuake
+# Backend FastAPI
 # =========================
 [services.backend]
-name = "sha-api"
+name = "psha-api"
 path = "psha-api"
 type = "docker"
 
@@ -15,26 +15,23 @@ APP_HOST = "0.0.0.0"
 APP_PORT = "8000"
 
 # =========================
-# Frontend React (Vite)
+# Frontend React Vite
 # =========================
 [services.frontend]
-name = "sha-web"
-path = "psha-web"
-type = "docker"
-build_command = "docker build -t psha-web ."
-start_command = "docker run -p 8080:8080 psha-web"
-
+name = "psha-web"
+path = "psha-web"       # HARUS folder yang ada package.json
+type = "docker"         # pakai docker, bukan static
+build_command = "docker build -t frontend ."
+start_command = "docker run -p $PORT:$PORT frontend"
 
 [services.frontend.env]
 VITE_API_URL = "https://sha-api-production.up.railway.app/api/v1"
-VITE_SAVE_MODE = "server"
-VITE_APP_NAME = "PSHA Web"
 
 # =========================
 # PostgreSQL Service
 # =========================
 [services.db]
-name = "sha-db"
+name = "psha-db"
 type = "postgresql"
 env = { 
   POSTGRES_USER = "psha_prod",
