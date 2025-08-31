@@ -1,12 +1,34 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
+import time
+from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 from app.routers import gmpe, datasource, analysis, hazard, mechanism, meta
-from app.database import Base, engine
+from app.database import Base
+
+# ======= Setup DB dengan retry =======
+DATABASE_URL = "postgresql+psycopg2://postgres:PIjMWkSHXZzFGcwprGpoUUcmdKRXKQwA@shortline.proxy.rlwy.net:48540/railway"
+max_retries = 10
+
+for i in range(max_retries):
+    try:
+        engine = create_engine(DATABASE_URL)
+        # coba connect
+        conn = engine.connect()
+        conn.close()
+        print("✅ Database connected")
+        break
+    except OperationalError:
+        print(f"⚠️ DB not ready, retry {i+1}/{max_retries}")
+        time.sleep(5)
+else:
+    raise RuntimeError("❌ Could not connect to database after several retries")
 
 # Buat tabel di DB jika belum ada
 Base.metadata.create_all(bind=engine)
 
+# ======= FastAPI app =======
 app = FastAPI(title="PSHA API", version="1.0.0")
 
 # Supaya React bisa akses API tanpa error CORS
