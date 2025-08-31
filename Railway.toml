@@ -6,12 +6,11 @@ name = "psha-web"
 # =========================
 [services.backend]
 name = "psha-api"
-path = "psha-api"       # root dir Dockerfile
+path = "psha-api"
 type = "docker"
 
 [services.backend.env]
-# Railway akan buat service PostgreSQL sendiri
-DATABASE_URL = "postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+DATABASE_URL = "postgresql+psycopg2://psha_prod:supersecret@psha-db:5432/pshadb_prod"
 APP_HOST = "0.0.0.0"
 APP_PORT = "8000"
 
@@ -26,7 +25,7 @@ build_command = "npm install && npm run build"
 start_command = "npx serve -s dist"
 
 [services.frontend.env]
-VITE_API_URL = "http://psha-api:8000"  # gunakan service name internal Railway (backend)
+VITE_API_URL = "http://psha-api:8000"  # internal service name Railway
 
 # =========================
 # PostgreSQL Service
