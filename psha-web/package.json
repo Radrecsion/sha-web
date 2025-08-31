@@ -15,6 +15,8 @@
     "@headlessui/react": "^2.2.7",
     "axios": "^1.11.0",
     "chart.js": "^4.4.0",
+    "express": "^5.1.0",
+    "gh-pages": "^6.0.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",
     "papaparse": "^5.5.3",
@@ -22,10 +24,9 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
-    "three-stdlib": "^2.30.4",
     "react-markdown": "^9.0.1",
     "three": "^0.132.0",
-    "gh-pages": "^6.0.0"
+    "three-stdlib": "^2.30.4"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
