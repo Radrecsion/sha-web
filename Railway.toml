@@ -25,7 +25,8 @@ build_command = "npm install && npm run build"
 start_command = "npx serve -s dist"
 
 [services.frontend.env]
-VITE_API_URL = "http://psha-api:8000"  # internal service name Railway
+VITE_API_URL = "https://psha-api.up.railway.app/api/v1"
+
 
 # =========================
 # PostgreSQL Service
