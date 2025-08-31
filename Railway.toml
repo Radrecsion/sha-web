@@ -20,9 +20,10 @@ APP_PORT = "8000"
 [services.frontend]
 name = "sha-web"
 path = "psha-web"
-type = "static"
-build_command = "npm install && npm run build"
-start_command = "npm run preview"
+type = "docker"
+build_command = "docker build -t psha-web ."
+start_command = "docker run -p 8080:8080 psha-web"
+
 
 [services.frontend.env]
 VITE_API_URL = "https://sha-api-production.up.railway.app/api/v1"
