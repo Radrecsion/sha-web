@@ -1,11 +1,11 @@
 [project]
-name = "psha-web"
+name = "sha-web"
 
 # =========================
 # Backend FastAPI + OpenQuake
 # =========================
 [services.backend]
-name = "psha-api"
+name = "sha-api"
 path = "psha-api"
 type = "docker"
 
@@ -18,21 +18,21 @@ APP_PORT = "8000"
 # Frontend React (Vite)
 # =========================
 [services.frontend]
-name = "psha-web"
+name = "sha-web"
 path = "psha-web"
 type = "static"
 build_command = "npm install && npm run build"
 start_command = "npx serve -s dist"
 
 [services.frontend.env]
-VITE_API_URL = "https://psha-api.up.railway.app/api/v1"
+VITE_API_URL = "https://sha-api-production.up.railway.app/api/v1"
 
 
 # =========================
 # PostgreSQL Service
 # =========================
 [services.db]
-name = "psha-db"
+name = "sha-db"
 type = "postgresql"
 env = { 
   POSTGRES_USER = "psha_prod",

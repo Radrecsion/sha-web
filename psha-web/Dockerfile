@@ -1,20 +1,26 @@
-# Gunakan Node.js resmi
-FROM node:20
-
-# Atur working directory
+# Stage 1: Build
+FROM node:20 AS builder
 WORKDIR /app
 
-# Copy package.json & lockfile
 COPY package.json package-lock.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy semua kode frontend
 COPY . .
+RUN npm run build
 
-# Expose port Vite
-EXPOSE 5173
+# Stage 2: Serve
+FROM node:20-alpine AS runner
+WORKDIR /app
 
-# Jalankan Vite dev server
-CMD ["npm", "run", "dev", "--", "--host"]
+# Install serve globally
+RUN npm install -g serve
+
+# Copy build output
+COPY --from=builder /app/dist ./dist
+
+# Railway memberikan port melalui env PORT
+ENV PORT $PORT
+EXPOSE $PORT
+
+# Jalankan server
+CMD ["serve", "-s", "dist", "-l", "0.0.0.0:$PORT"]
