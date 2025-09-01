@@ -4,7 +4,6 @@ import ResultPage from "./pages/ResultPage";
 import Toast from "./components/ui/Toast";
 import DataSourceForm from "./pages/DataSourceForm";
 import GmpePage from "./pages/GmpePage";
-import API_URL from "./lib/api";
 
 import Sidebar from "./components/ui/Sidebar";
 import Topbar from "./components/ui/Topbar";
@@ -17,7 +16,8 @@ import HelpModal from "./modals/HelpModal";
 import { saveProject } from "./services/projectService";
 
 // Ambil API_URL dari runtime config
-const API_URL = window.RUNTIME_CONFIG?.API_URL || "http://localhost:8000/api/v1";
+export const API_URL = window.RUNTIME_CONFIG?.API_URL || "http://localhost:8000/api/v1";
+
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("analysis");
