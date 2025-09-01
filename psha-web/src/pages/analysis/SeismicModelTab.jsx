@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 
-
 export default function SeismicModelTab({
   datasources,
   selectedSources,
@@ -12,24 +11,17 @@ export default function SeismicModelTab({
   const [gmpeList, setGmpeList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const API_URL = import.meta.env.VITE_API_URL ||
-  "https://sha-api-production.up.railway.app/api/v1"; // fallback
+
+  const API_URL = import.meta.env.VITE_API_URL || "";
 
   /** ================== FETCH GMPE ================== */
   useEffect(() => {
     async function fetchGmpe() {
       try {
-        console.log("👉 Fetching GMPE from:", API_URL);
-        const res = await fetch(`${API_URL}/gmpe/`);
+        const res = await fetch(`${API_URL}/gmpe`);
         if (!res.ok) throw new Error(`Fetch status: ${res.status}`);
         const data = await res.json();
-
-        if (Array.isArray(data)) setGmpeList(data);
-        else if (Array.isArray(data.data)) setGmpeList(data.data);
-        else {
-          setGmpeList([]);
-          setError("Format data GMPE tidak sesuai");
-        }
+        setGmpeList(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
         console.error("❌ GMPE fetch error:", err);
         setError(err.message || "Gagal fetch GMPE");
@@ -37,35 +29,27 @@ export default function SeismicModelTab({
         setLoading(false);
       }
     }
-
     fetchGmpe();
-  }, [API_URL]); // tambahkan API_URL sebagai dependency untuk keamanan
-
-  console.log("API URL =", API_URL);
-
+  }, [API_URL]);
 
   /** ================== SOURCES ================== */
-  const toggleSource = (ds) => {
+  const toggleSource = (ds) =>
     setSelectedSources((prev) =>
       prev.some((s) => s.id === ds.id)
         ? prev.filter((s) => s.id !== ds.id)
         : [...prev, ds]
     );
-  };
 
-  const toggleAllSources = () => {
+  const toggleAllSources = () =>
     setSelectedSources((prev) =>
       prev.length === datasources.length ? [] : datasources
     );
-  };
 
-  /** ================== GMPE ================== */
+  /** ================== GMPE SELECTION ================== */
   const toggleGmpe = (gmpe) => {
     setSelectedGmpes((prev) => {
       const exists = prev.find((g) => g.gmpeId === gmpe.id);
-      if (exists) {
-        return prev.filter((g) => g.gmpeId !== gmpe.id);
-      }
+      if (exists) return prev.filter((g) => g.gmpeId !== gmpe.id);
       return [...prev, { gmpeId: gmpe.id, gmpeName: gmpe.name, weight: 0 }];
     });
   };
@@ -79,16 +63,19 @@ export default function SeismicModelTab({
   };
 
   /** ================== FILTER GMPE ================== */
-  // sementara tampilkan semua GMPE
-const filteredGmpes = gmpeList.filter((gmpe) => {
-    if (siteParameter && gmpe.site_type?.toLowerCase() !== siteParameter.toLowerCase()) return false;
+  const filteredGmpes = gmpeList.filter((gmpe) => {
+    if (siteParameter && gmpe.site_type?.toLowerCase() !== siteParameter.toLowerCase())
+      return false;
+
     if (selectedSources.length > 0) {
-      const selectedMechanisms = selectedSources.map((ds) => ds.mechanism?.toLowerCase());
+      const selectedMechanisms = selectedSources.map((ds) =>
+        ds.mechanism?.toLowerCase()
+      );
       if (!selectedMechanisms.includes(gmpe.mechanism?.toLowerCase())) return false;
     }
+
     return true;
   });
-
 
   /** ================== RENDER ================== */
   if (loading) return <div className="p-4">⏳ Memuat GMPE...</div>;
@@ -98,24 +85,17 @@ const filteredGmpes = gmpeList.filter((gmpe) => {
 
   return (
     <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* ================== LEFT: DATASOURCES ================== */}
+      {/* LEFT: Datasources */}
       <div className="border rounded-lg p-4 flex flex-col">
         <h2 className="font-semibold mb-2">Available Datasources</h2>
-
-        {/* Checkbox Select All */}
         <div className="flex items-center space-x-2 mb-2">
           <input
             type="checkbox"
-            checked={
-              selectedSources.length === datasources.length &&
-              datasources.length > 0
-            }
+            checked={selectedSources.length === datasources.length && datasources.length > 0}
             onChange={toggleAllSources}
           />
           <span className="font-medium">Select All</span>
         </div>
-
-        {/* Scrollable list */}
         <div className="flex-1 max-h-80 overflow-y-auto pr-2 space-y-1">
           {datasources.length === 0 ? (
             <p className="text-gray-500">No datasource available</p>
@@ -127,9 +107,7 @@ const filteredGmpes = gmpeList.filter((gmpe) => {
                   key={ds.id}
                   onClick={() => toggleSource(ds)}
                   className={`cursor-pointer px-3 py-2 rounded border ${
-                    isSelected
-                      ? "bg-blue-100 border-blue-400"
-                      : "hover:bg-gray-100 border-gray-300"
+                    isSelected ? "bg-blue-100 border-blue-400" : "hover:bg-gray-100 border-gray-300"
                   }`}
                 >
                   {ds.name || "Unnamed Source"}
@@ -140,14 +118,11 @@ const filteredGmpes = gmpeList.filter((gmpe) => {
         </div>
       </div>
 
-      {/* ================== RIGHT: GMPE ================== */}
+      {/* RIGHT: GMPE */}
       <div className="border rounded-lg p-4 flex flex-col">
         <h2 className="font-semibold mb-2">Available GMPEs</h2>
-
         {!siteParameter ? (
-          <div className="text-gray-500 italic">
-            Pilih site parameter (Rock / Soil) terlebih dahulu
-          </div>
+          <div className="text-gray-500 italic">Pilih site parameter (Rock / Soil) terlebih dahulu</div>
         ) : filteredGmpes.length === 0 ? (
           <p className="text-gray-500">
             Tidak ada GMPE tersedia untuk site <strong>{siteParameter}</strong>
@@ -161,22 +136,18 @@ const filteredGmpes = gmpeList.filter((gmpe) => {
                   key={gmpe.id}
                   onClick={() => toggleGmpe(gmpe)}
                   className={`cursor-pointer px-3 py-2 rounded border flex items-center justify-between ${
-                    selected
-                      ? "bg-blue-100 border-blue-400"
-                      : "hover:bg-gray-100 border-gray-300"
+                    selected ? "bg-blue-100 border-blue-400" : "hover:bg-gray-100 border-gray-300"
                   }`}
                 >
                   <span>
-                    {gmpe.name} ({gmpe.year || "-"}, {gmpe.region || "-"})
+                    {gmpe.name} ({gmpe.year || "-"}, {gmpe.tectonic_region || gmpe.region || "-"})
                   </span>
                   {selected && (
                     <input
                       type="number"
                       step="0.01"
                       value={selected.weight}
-                      onChange={(e) =>
-                        handleWeightChange(gmpe.id, e.target.value)
-                      }
+                      onChange={(e) => handleWeightChange(gmpe.id, e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                       className="w-20 border rounded px-2 py-1 text-right"
                     />
@@ -187,19 +158,14 @@ const filteredGmpes = gmpeList.filter((gmpe) => {
           </div>
         )}
 
-        {/* Summary */}
         {siteParameter && (
           <div
             className={`mt-2 text-sm ${
-              Math.abs(totalWeight - 1.0) > 0.001
-                ? "text-red-600 font-semibold"
-                : "text-gray-600"
+              Math.abs(totalWeight - 1.0) > 0.001 ? "text-red-600 font-semibold" : "text-gray-600"
             }`}
           >
             Total weight = <strong>{totalWeight.toFixed(2)}</strong>{" "}
-            {Math.abs(totalWeight - 1.0) > 0.001
-              ? "(harus = 1.0)"
-              : "✅ Sudah valid"}
+            {Math.abs(totalWeight - 1.0) > 0.001 ? "(harus = 1.0)" : "✅ Sudah valid"}
           </div>
         )}
       </div>
