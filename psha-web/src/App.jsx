@@ -4,6 +4,7 @@ import ResultPage from "./pages/ResultPage";
 import Toast from "./components/ui/Toast";
 import DataSourceForm from "./pages/DataSourceForm";
 import GmpePage from "./pages/GmpePage";
+import api from "./lib/api";
 
 import Sidebar from "./components/ui/Sidebar";
 import Topbar from "./components/ui/Topbar";
@@ -20,6 +21,7 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
+  const [data, setData] = useState(null);
 
   const [siteData, setSiteData] = useState({});
   const [datasources, setDatasources] = useState([]);
@@ -35,7 +37,12 @@ export default function App() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+  const apiUrl =
+    window.RUNTIME_CONFIG?.API_URL ||
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:8000/api/v1";
+
+
 
   /** ================== HANDLERS ================== */
   function handleRun({ result, siteData, selectedSources, selectedGmpes, error }) {
@@ -113,7 +120,7 @@ export default function App() {
       <Topbar
         onSave={() => setIsSaveOpen(true)}
         onLoad={() => setIsLoadOpen(true)}
-        onHelp={() => alert("Help clicked!")}
+        onHelp={() => setIsHelpOpen(true)}
         setActiveTab={setActiveTab}
       />
 

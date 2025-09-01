@@ -5,6 +5,7 @@ export default function GmpePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openId, setOpenId] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL || "🚨 ENV VITE_API_URL TIDAK KEBACA";
 
   useEffect(() => {
     async function fetchGmpe() {
@@ -23,7 +24,9 @@ export default function GmpePage() {
     }
     fetchGmpe();
   }, []);
-  console.log("API URL:", import.meta.env.VITE_API_URL);
+  
+  console.log("API URL:", API_URL);
+
 
 
   if (loading) return <div className="p-4">⏳ Memuat data GMPE...</div>;

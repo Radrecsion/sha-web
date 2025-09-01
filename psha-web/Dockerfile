@@ -1,28 +1,17 @@
-# Stage 1: Build React
-FROM node:20 AS builder
+FROM node:20 as builder
 WORKDIR /app
-
 COPY package.json package-lock.json ./
 RUN npm install
-
-COPY . ./
+COPY . .
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:1.27-alpine AS runner
+FROM nginx:1.27-alpine
 WORKDIR /usr/share/nginx/html
-
-# Hapus file default
-RUN rm -rf ./*
-
-# Copy hasil build dari stage builder
 COPY --from=builder /app/dist ./
-
-# Install envsubst (buat replace $PORT di config)
+COPY config.js ./          # masukkan placeholder config.js
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN apk add --no-cache gettext
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Copy konfigurasi nginx template
-COPY nginx.conf /etc/nginx/conf.d/default.conf.template
-
-# Generate config pakai envsubst dan jalankan nginx
-CMD [ "sh", "-c", "envsubst '$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'" ]
+ENTRYPOINT ["/entrypoint.sh"]
