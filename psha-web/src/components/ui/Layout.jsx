@@ -30,6 +30,8 @@ export default function Layout({ children }) {
             onSaveClick={() => alert("Save clicked")}
             onLoadClick={(src) => alert("Load from " + src)}
             onHelpClick={() => alert("Help clicked")}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
             onMenuToggle={() => setSidebarOpen((v) => !v)}
             onThemeToggle={() =>
               setTheme(theme === "dark" ? "light" : "dark")
