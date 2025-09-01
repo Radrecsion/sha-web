@@ -21,8 +21,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy semua kode backend
 COPY . .
 
-# Expose port FastAPI
-EXPOSE 8000
-
 # Jalankan server dengan Gunicorn + Uvicorn workers (production)
 CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:8000"]

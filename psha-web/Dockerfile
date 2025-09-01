@@ -16,14 +16,16 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
+# Install serve
 RUN npm install -g serve
 
+# Copy hasil build dari stage builder
 COPY --from=builder /app/dist ./dist
 
 # Railway memberikan PORT
-ENV PORT 3000
+ENV PORT $PORT
 EXPOSE $PORT
 
-# Jalankan server menggunakan port Railway
-CMD ["sh", "-c", "serve -s dist -l $PORT"]
+# Jalankan server
+CMD ["serve", "-s", "dist", "-l", "0.0.0.0", "-p", "$PORT"]
 
