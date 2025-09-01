@@ -23,7 +23,7 @@ html, body, #root {
   --color-border: rgba(128,128,128,0.4);
 
   --hover-light: #e5e7eb; /* Tailwind gray-200/300 */
-  --hover-dark: #374151;  /* Tailwind gray-700/600 */
+  --hover-dark: #1f2937;  /* lebih gelap dari sebelumnya #374151 */
 }
 
 [data-theme="light"] {
@@ -81,6 +81,7 @@ main {
 
 .tab-item:hover {
   opacity: 1;
+  background-color: var(--hover);
 }
 
 .tab-item[data-headlessui-state="selected"] {
@@ -118,7 +119,11 @@ main {
   color: var(--text);
   border-radius: 0.75rem;
   padding: 1rem;
-  @apply shadow-md;
+  @apply shadow-md transition-colors;
+}
+
+.card-custom:hover {
+  background-color: var(--hover);
 }
 
 input, textarea, select {
@@ -127,6 +132,11 @@ input, textarea, select {
   border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 0.5rem;
+  transition: background-color 0.3s;
+}
+
+input:hover, textarea:hover, select:hover {
+  background-color: var(--hover);
 }
 
 /* ===== Theme Toggle Button ===== */
@@ -205,6 +215,7 @@ button.theme-toggle:hover {
   border-radius: 0.75rem;
   background-color: var(--card);
   display: block;
+  transition: background-color 0.3s;
 }
 
 /* Responsif */
