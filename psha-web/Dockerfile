@@ -18,8 +18,11 @@ RUN rm -rf ./*
 # Copy hasil build dari stage builder
 COPY --from=builder /app/dist ./
 
-# Copy konfigurasi nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Install envsubst (buat replace $PORT di config)
+RUN apk add --no-cache gettext
 
-EXPOSE 3000
-CMD ["nginx", "-g", "daemon off;"]
+# Copy konfigurasi nginx template
+COPY nginx.conf /etc/nginx/conf.d/default.conf.template
+
+# Generate config pakai envsubst dan jalankan nginx
+CMD [ "sh", "-c", "envsubst '$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'" ]
