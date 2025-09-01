@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { API_URL } from "../../../public/config";
 
 
 export default function SeismicModelTab({
@@ -13,6 +12,8 @@ export default function SeismicModelTab({
   const [gmpeList, setGmpeList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL ||
+  "https://sha-api-production.up.railway.app/api/v1"; // fallback
 
   /** ================== FETCH GMPE ================== */
   useEffect(() => {
@@ -38,9 +39,10 @@ export default function SeismicModelTab({
     }
 
     fetchGmpe();
-  }, []);
+  }, [API_URL]); // tambahkan API_URL sebagai dependency untuk keamanan
 
-console.log("API URL =", import.meta.env.VITE_API_URL);
+  console.log("API URL =", API_URL);
+
 
   /** ================== SOURCES ================== */
   const toggleSource = (ds) => {
@@ -78,22 +80,14 @@ console.log("API URL =", import.meta.env.VITE_API_URL);
 
   /** ================== FILTER GMPE ================== */
   // sementara tampilkan semua GMPE
- const filteredGmpes = gmpeList.filter((gmpe) => {
-  // filter site parameter
-  if (siteParameter && gmpe.site_type?.toLowerCase() !== siteParameter.toLowerCase()) {
-    return false;
-  }
-
-  // filter mechanism berdasarkan datasource yang dipilih
-  if (selectedSources.length > 0) {
-    const selectedMechanisms = selectedSources.map((ds) => ds.mechanism?.toLowerCase());
-    if (!selectedMechanisms.includes(gmpe.mechanism?.toLowerCase())) {
-      return false;
+const filteredGmpes = gmpeList.filter((gmpe) => {
+    if (siteParameter && gmpe.site_type?.toLowerCase() !== siteParameter.toLowerCase()) return false;
+    if (selectedSources.length > 0) {
+      const selectedMechanisms = selectedSources.map((ds) => ds.mechanism?.toLowerCase());
+      if (!selectedMechanisms.includes(gmpe.mechanism?.toLowerCase())) return false;
     }
-  }
-
-  return true;
-});
+    return true;
+  });
 
 
   /** ================== RENDER ================== */
