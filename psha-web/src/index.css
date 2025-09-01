@@ -23,7 +23,7 @@ html, body, #root {
   --color-border: rgba(128,128,128,0.4);
 
   --hover-light: #e5e7eb; /* Tailwind gray-200/300 */
-  --hover-dark: #1f2937;  /* lebih gelap dari sebelumnya #374151 */
+  --hover-dark: #1f2937;  /* sedikit lebih gelap */
 }
 
 [data-theme="light"] {
@@ -139,6 +139,28 @@ input:hover, textarea:hover, select:hover {
   background-color: var(--hover);
 }
 
+/* ===== Buttons dengan Hover Underline ===== */
+button {
+  position: relative;
+  transition: color 0.3s;
+}
+
+button::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background-color: var(--text);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+button:hover::after {
+  width: 100%;
+}
+
 /* ===== Theme Toggle Button ===== */
 button.theme-toggle:hover {
   background-color: var(--hover);
@@ -179,38 +201,23 @@ button.theme-toggle:hover {
 }
 
 /* ===== Animations ===== */
-@keyframes slide-in {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-@keyframes slide-out {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
-}
-@keyframes fade-slide {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes slide-in { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes slide-out { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+@keyframes fade-slide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .animate-fade-slide { animation: fade-slide 0.4s ease-out; }
 .animate-slide-in { animation: slide-in 0.3s ease-out forwards; }
 .animate-slide-out { animation: slide-out 0.3s ease-in forwards; }
 
 /* ===== Sidebar Animation ===== */
 .sidebar-enter { transform: translateX(-100%); }
-.sidebar-enter-active {
-  transform: translateX(0);
-  transition: transform 0.3s ease-out;
-}
+.sidebar-enter-active { transform: translateX(0); transition: transform 0.3s ease-out; }
 .sidebar-exit { transform: translateX(0); }
-.sidebar-exit-active {
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in;
-}
+.sidebar-exit-active { transform: translateX(-100%); transition: transform 0.3s ease-in; }
 
 /* ===== Three.js Canvas Global ===== */
 .three-canvas {
   width: 100%;
-  height: 400px; /* default tinggi */
+  height: 400px;
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   background-color: var(--card);
@@ -218,15 +225,12 @@ button.theme-toggle:hover {
   transition: background-color 0.3s;
 }
 
-/* Responsif */
 @media (min-width: 768px) {
-  .three-canvas {
-    height: 500px;
-  }
+  .three-canvas { height: 500px; }
 }
 
 [data-theme="dark"] .three-canvas {
-  background-color: #111827; /* Tailwind gray-900 */
+  background-color: #111827;
 }
 
 /* GMPE List Item */
@@ -237,16 +241,9 @@ button.theme-toggle:hover {
   color: var(--text);
 }
 
-.gmpe-item:hover {
-  background-color: #374151; /* lebih gelap dari hover sebelumnya #1f2937 */
-}
+.gmpe-item:hover { background-color: #374151; }
+.gmpe-item.selected { background-color: #4b5563; border-color: #2563eb; }
 
-.gmpe-item.selected {
-  background-color: #4b5563; /* dark slate blue-ish untuk selected */
-  border-color: #2563eb; /* biru agak kontras */
-}
-
-/* Input di dalam GMPE item tetap sama */
 .gmpe-item input {
   @apply w-20 border rounded px-2 py-1 text-right;
   border-color: var(--color-border);
@@ -254,6 +251,4 @@ button.theme-toggle:hover {
   color: var(--text);
 }
 
-.gmpe-item input:hover {
-  background-color: var(--hover);
-}
+.gmpe-item input:hover { background-color: var(--hover); }

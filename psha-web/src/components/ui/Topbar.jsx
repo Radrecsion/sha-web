@@ -40,6 +40,15 @@ export default function Topbar({
     localStorage.setItem("theme", newTheme);
   };
 
+  const renderButton = (label, onClick, colorClass) => (
+    <button
+      onClick={onClick}
+      className={`relative transition-colors ${colorClass}`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[var(--card)] text-[var(--text)] shadow">
       <div className="px-4 py-3 flex justify-between items-center">
@@ -58,9 +67,9 @@ export default function Topbar({
         <div className="flex items-center space-x-4">
           {/* Desktop menu */}
           <nav className="hidden md:flex items-center space-x-6">
-            <button onClick={onSaveClick} className="hover:text-blue-400">Save</button>
-            <button onClick={() => onLoadClick("file")} className="hover:text-green-400">Load</button>
-            <button onClick={onHelpClick} className="hover:text-gray-400">Help</button>
+            {renderButton("Save", onSaveClick, "hover:text-blue-400")}
+            {renderButton("Load", () => onLoadClick("file"), "hover:text-green-400")}
+            {renderButton("Help", onHelpClick, "hover:text-gray-400")}
           </nav>
 
           {/* Theme toggle always visible */}
@@ -116,9 +125,9 @@ export default function Topbar({
 
             {/* Actions */}
             <div className="flex flex-col space-y-2">
-              <button onClick={onSaveClick} className="text-left px-3 py-2 hover:bg-[var(--hover)]">Save</button>
-              <button onClick={() => onLoadClick("file")} className="text-left px-3 py-2 hover:bg-[var(--hover)]">Load</button>
-              <button onClick={onHelpClick} className="text-left px-3 py-2 hover:bg-[var(--hover)]">Help</button>
+              {renderButton("Save", onSaveClick, "hover:text-blue-400")}
+              {renderButton("Load", () => onLoadClick("file"), "hover:text-green-400")}
+              {renderButton("Help", onHelpClick, "hover:text-gray-400")}
             </div>
           </aside>
         </div>
