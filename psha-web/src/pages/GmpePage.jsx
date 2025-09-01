@@ -9,12 +9,13 @@ export default function GmpePage() {
   useEffect(() => {
     async function fetchGmpe() {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/gmpe`);
+        const baseUrl = import.meta.env.VITE_API_URL || "";
+        const res = await fetch(`${baseUrl}/gmpe`);
         if (!res.ok) throw new Error(`Fetch status: ${res.status}`);
         const data = await res.json();
         setGmpeList(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
-        console.error(err);
+        console.error("❌ Fetch GMPE error:", err);
         setError(err.message || "Gagal fetch GMPE");
       } finally {
         setLoading(false);
@@ -22,6 +23,7 @@ export default function GmpePage() {
     }
     fetchGmpe();
   }, []);
+
 
   if (loading) return <div className="p-4">⏳ Memuat data GMPE...</div>;
   if (error) return <div className="p-4 text-red-500">❌ {error}</div>;
