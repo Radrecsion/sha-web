@@ -1,5 +1,6 @@
-window.RUNTIME_CONFIG = {
-  API_URL: "$VITE_API_URL",
-  SAVE_MODE: "$VITE_SAVE_MODE",
-  APP_NAME: "$VITE_APP_NAME"
-};
+// src/config.js
+export const API_URL =
+  // jika dijalankan di GitHub Pages / browser, pakai production API
+  window.location.hostname.includes("github.io")
+    ? "https://sha-api-production.up.railway.app/api/v1"
+    : import.meta.env.VITE_API_URL;
