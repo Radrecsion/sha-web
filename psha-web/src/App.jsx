@@ -4,7 +4,7 @@ import ResultPage from "./pages/ResultPage";
 import Toast from "./components/ui/Toast";
 import DataSourceForm from "./pages/DataSourceForm";
 import GmpePage from "./pages/GmpePage";
-import api from "./lib/api";
+import API_URL from "./lib/api";
 
 import Sidebar from "./components/ui/Sidebar";
 import Topbar from "./components/ui/Topbar";
@@ -15,6 +15,9 @@ import HelpModal from "./modals/HelpModal";
 
 
 import { saveProject } from "./services/projectService";
+
+// Ambil API_URL dari runtime config
+const API_URL = window.RUNTIME_CONFIG?.API_URL || "http://localhost:8000/api/v1";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("analysis");
@@ -36,13 +39,10 @@ export default function App() {
   const [isLoadOpen, setIsLoadOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
-
-  const apiUrl =
-    window.RUNTIME_CONFIG?.API_URL ||
-    import.meta.env.VITE_API_URL ||
-    "http://localhost:8000/api/v1";
-
-
+// Debug: cek runtime API_URL
+  useEffect(() => {
+    console.log("Runtime API URL:", API_URL);
+  }, []);
 
   /** ================== HANDLERS ================== */
   function handleRun({ result, siteData, selectedSources, selectedGmpes, error }) {
@@ -80,9 +80,9 @@ export default function App() {
   }
 
   /** ================== FETCH ================== */
-  async function fetchDatasources() {
+async function fetchDatasources() {
     try {
-      const res = await fetch(`${apiUrl}/datasource/`);
+      const res = await fetch(`${API_URL}/datasource/`);
       if (!res.ok) throw new Error(`Fetch datasource status: ${res.status}`);
       const data = await res.json();
       if (Array.isArray(data)) setDatasources(data);
@@ -96,7 +96,7 @@ export default function App() {
 
   async function fetchGmpes() {
     try {
-      const res = await fetch(`${apiUrl}/gmpe/`);
+      const res = await fetch(`${API_URL}/gmpe/`);
       if (!res.ok) throw new Error(`Fetch gmpe status: ${res.status}`);
       const data = await res.json();
       if (Array.isArray(data)) setGmpeList(data);
