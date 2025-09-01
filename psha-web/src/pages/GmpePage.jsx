@@ -23,6 +23,7 @@ export default function GmpePage() {
     }
     fetchGmpe();
   }, []);
+  console.log("API URL:", import.meta.env.VITE_API_URL);
 
 
   if (loading) return <div className="p-4">⏳ Memuat data GMPE...</div>;
