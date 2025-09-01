@@ -62,21 +62,6 @@ export default function SeismicModelTab({
     );
   };
 
-  /** ================== FILTER GMPE ================== */
-  // const filteredGmpes = gmpeList.filter((gmpe) => {
-  //   if (siteParameter && gmpe.site_type?.toLowerCase() !== siteParameter.toLowerCase())
-  //     return false;
-
-  //   if (selectedSources.length > 0) {
-  //     const selectedMechanisms = selectedSources.map((ds) =>
-  //       ds.mechanism?.toLowerCase()
-  //     );
-  //     if (!selectedMechanisms.includes(gmpe.mechanism?.toLowerCase())) return false;
-  //   }
-
-  //   return true;
-  // });
-
   /** ================== RENDER ================== */
   if (loading) return <div className="p-4">⏳ Memuat GMPE...</div>;
   if (error) return <div className="p-4 text-red-500">❌ {error}</div>;
@@ -121,15 +106,12 @@ export default function SeismicModelTab({
       {/* RIGHT: GMPE */}
       <div className="border rounded-lg p-4 flex flex-col">
         <h2 className="font-semibold mb-2">Available GMPEs</h2>
-        {!siteParameter ? (
-          <div className="text-gray-500 italic">Pilih site parameter (Rock / Soil) terlebih dahulu</div>
-        ) : filteredGmpes.length === 0 ? (
-          <p className="text-gray-500">
-            Tidak ada GMPE tersedia untuk site <strong>{siteParameter}</strong>
-          </p>
-        ) : (
-          <div className="flex-1 max-h-80 overflow-y-auto pr-2 space-y-1">
-            {filteredGmpes.map((gmpe) => {
+
+        <div className="flex-1 max-h-80 overflow-y-auto pr-2 space-y-1">
+          {gmpeList.length === 0 ? (
+            <p className="text-gray-500">Tidak ada GMPE tersedia</p>
+          ) : (
+            gmpeList.map((gmpe) => {
               const selected = selectedGmpes.find((g) => g.gmpeId === gmpe.id);
               return (
                 <div
@@ -139,9 +121,7 @@ export default function SeismicModelTab({
                     selected ? "bg-blue-100 border-blue-400" : "hover:bg-gray-100 border-gray-300"
                   }`}
                 >
-                  <span>
-                    {gmpe.name} ({gmpe.year || "-"}, {gmpe.tectonic_region || gmpe.region || "-"})
-                  </span>
+                  <span>{gmpe.name} ({gmpe.year || "-"}, {gmpe.tectonic_region || gmpe.region || "-"})</span>
                   {selected && (
                     <input
                       type="number"
@@ -154,20 +134,14 @@ export default function SeismicModelTab({
                   )}
                 </div>
               );
-            })}
-          </div>
-        )}
+            })
+          )}
+        </div>
 
-        {siteParameter && (
-          <div
-            className={`mt-2 text-sm ${
-              Math.abs(totalWeight - 1.0) > 0.001 ? "text-red-600 font-semibold" : "text-gray-600"
-            }`}
-          >
-            Total weight = <strong>{totalWeight.toFixed(2)}</strong>{" "}
-            {Math.abs(totalWeight - 1.0) > 0.001 ? "(harus = 1.0)" : "✅ Sudah valid"}
-          </div>
-        )}
+        <div className={`mt-2 text-sm ${Math.abs(selectedGmpes.reduce((sum, g) => sum + (g.weight || 0), 0) - 1.0) > 0.001 ? "text-red-600 font-semibold" : "text-gray-600"}`}>
+          Total weight = <strong>{selectedGmpes.reduce((sum, g) => sum + (g.weight || 0), 0).toFixed(2)}</strong> 
+          {Math.abs(selectedGmpes.reduce((sum, g) => sum + (g.weight || 0), 0) - 1.0) > 0.001 ? " (harus = 1.0)" : " ✅ Sudah valid"}
+        </div>
       </div>
     </div>
   );
