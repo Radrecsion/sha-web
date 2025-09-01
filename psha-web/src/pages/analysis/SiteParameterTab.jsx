@@ -3,6 +3,16 @@ import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
+// 🔹 Fix default marker issue
+const DefaultIcon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 export default function SiteParameterTab({ siteData, setSiteData, initialData = {} }) {
   const [mode, setMode] = useState("single"); // "single" | "multi"
@@ -10,7 +20,6 @@ export default function SiteParameterTab({ siteData, setSiteData, initialData = 
   const [previewCoords, setPreviewCoords] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
 
-  // 🔹 Parser untuk single & multi
   function parseSites(text) {
     return (text || "")
       .split("\n")
@@ -35,12 +44,7 @@ export default function SiteParameterTab({ siteData, setSiteData, initialData = 
 
   function handleSaveLocal() {
     const parsedSites = parseSites(textInput);
-    const updated = {
-      ...siteData,
-      sites: parsedSites,
-    };
-
-    setSiteData(updated); // kirim ke parent
+    setSiteData({ ...siteData, sites: parsedSites });
     alert("Site parameters updated!");
   }
 
@@ -49,7 +53,6 @@ export default function SiteParameterTab({ siteData, setSiteData, initialData = 
     setShowPreview(true);
   };
 
-  // 🔹 Komponen auto-zoom
   function FitBounds({ coords }) {
     const map = useMap();
     if (coords.length > 0) {
@@ -64,6 +67,7 @@ export default function SiteParameterTab({ siteData, setSiteData, initialData = 
       setSiteData(initialData);
     }
   }, [initialData]);
+
 
   return (
     <div className="p-4 space-y-4">
@@ -214,7 +218,7 @@ export default function SiteParameterTab({ siteData, setSiteData, initialData = 
       {showPreview && previewCoords.length > 0 && (
         <div className="mt-4 h-64 border rounded-lg overflow-hidden">
           <MapContainer
-            center={[-6.9, 107.6]}
+            center={[previewCoords[0].lat, previewCoords[0].lon]}
             zoom={6}
             className="h-full w-full"
           >
