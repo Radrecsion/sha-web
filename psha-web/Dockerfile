@@ -13,6 +13,7 @@ COPY --from=builder /app/dist ./
 COPY public/config.js ./         
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY entrypoint.sh /entrypoint.sh
+COPY public/favicon.ico ./
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
