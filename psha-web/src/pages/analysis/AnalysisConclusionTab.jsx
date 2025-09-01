@@ -1,11 +1,10 @@
 import "leaflet/dist/leaflet.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
-  Polygon,
   Polyline,
   useMap,
 } from "react-leaflet";
@@ -13,12 +12,20 @@ import L from "leaflet";
 import axios from "axios";
 import ResponsiveCard from "../../components/common/ResponsiveCard";
 
+// 🔹 Override default marker icon agar muncul
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
+  iconUrl: require("leaflet/dist/images/marker-icon.png"),
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+});
+
 // 🔹 Helper validasi koordinat
 const toLatLng = (coords) =>
   (coords || [])
     .map((c) => {
       if (Array.isArray(c) && c.length === 2) {
-        return [c[1], c[0]]; // [lat, lon] dari [lon, lat]
+        return [c[0], c[1]]; // [lat, lon] dari [lat, lon]
       }
       if (typeof c === "object" && c.lat != null && c.lon != null) {
         return [c.lat, c.lon]; // [lat, lon] dari object
@@ -27,52 +34,45 @@ const toLatLng = (coords) =>
     })
     .filter(Boolean);
 
+// 🔹 Komponen auto-zoom ke bounds
+function FitBounds({ coords }) {
+  const map = useMap();
+  useEffect(() => {
+    if (coords.length > 0) {
+      const bounds = L.latLngBounds(coords);
+      map.fitBounds(bounds, { padding: [30, 30] });
+    }
+  }, [coords, map]);
+  return null;
+}
 
 export default function AnalysisConclusionTab({
   siteData,
-  selectedSources, // ✅ konsisten pakai ini
+  selectedSources,
   datasources,
   onRunResult,
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🔹 Gabungkan semua koordinat untuk bounds
+  // Gabungkan semua koordinat
   const allCoords = selectedSources.flatMap((ds) => [
     ...toLatLng(ds.coords_up),
     ...toLatLng(ds.coords_down),
   ]);
 
-    // 🔎 Debug log
-  console.log("🔎 [AnalysisConclusionTab] selectedSources:", selectedSources);
-  console.log("🔎 [AnalysisConclusionTab] allCoords:", allCoords);
-
-   async function handleRunAnalysis() {
+  async function handleRunAnalysis() {
     setLoading(true);
     setError(null);
 
     try {
-      const payload = {
-        site: siteData,
-        sources: selectedSources,
-      };
-
-      console.log("📤 Sending payload to API:", payload);
-
+      const payload = { site: siteData, sources: selectedSources };
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/run-analysis`,
         payload
       );
-
-      const result = response.data;
-
-      console.log("✅ Analysis result received:", result);
-
-      if (onRunResult) {
-        onRunResult({ result, siteData, selectedSources });
-      }
+      if (onRunResult) onRunResult({ result: response.data, siteData, selectedSources });
     } catch (err) {
-      console.error("❌ Error in handleRunAnalysis:", err);
       setError(err.response?.data?.error || err.message || "Terjadi kesalahan");
     } finally {
       setLoading(false);
@@ -81,7 +81,7 @@ export default function AnalysisConclusionTab({
 
   return (
     <div className="p-2 sm:p-4 space-y-6">
-      {/* 🔹 Site Configuration */}
+      {/* Site Configuration */}
       <ResponsiveCard title="Site Configuration">
         {Object.keys(siteData).length === 0 ? (
           <p className="text-gray-500">No site parameters saved</p>
@@ -89,6 +89,7 @@ export default function AnalysisConclusionTab({
           <div className="space-y-3">
             {Object.entries(siteData).map(([key, value]) => {
               if (key === "sites") {
+                const coords = toLatLng(value);
                 return (
                   <div key={key}>
                     <span className="font-medium">Sites:</span>
@@ -103,7 +104,18 @@ export default function AnalysisConclusionTab({
                           ))}
                         </ul>
                         <div className="mt-3 h-[35vh] sm:h-[50vh] border rounded overflow-hidden">
-                          {/* MapContainer di sini */}
+                          <MapContainer center={coords[0] || [0, 0]} zoom={6} className="h-full w-full">
+                            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                            <FitBounds coords={coords} />
+                            {coords.map((c, i) => (
+                              <Marker key={i} position={c}>
+                                <Popup>
+                                  {value[i]?.name || `Site-${i + 1}`}<br />
+                                  Lat: {c[0]}, Lon: {c[1]}
+                                </Popup>
+                              </Marker>
+                            ))}
+                          </MapContainer>
                         </div>
                       </>
                     ) : (
@@ -122,25 +134,39 @@ export default function AnalysisConclusionTab({
         )}
       </ResponsiveCard>
 
-      {/* 🔹 Datasource */}
+      {/* Datasources Map */}
       <ResponsiveCard title="Selected Datasources">
         {selectedSources.length > 0 ? (
-          <>
-            <ul className="list-disc pl-5 mb-4 text-sm sm:text-base overflow-x-auto">
+          <div className="h-[35vh] sm:h-[55vh] w-full border rounded overflow-hidden">
+            <MapContainer center={allCoords[0] || [0, 0]} zoom={6} className="h-full w-full">
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <FitBounds coords={allCoords} />
               {selectedSources.map((ds, i) => (
-                <li key={i}>{ds.name}</li>
+                <>
+                  {toLatLng(ds.coords_up).map((c, idx) => (
+                    <Marker key={`up-${i}-${idx}`} position={c}>
+                      <Popup>
+                        {ds.name} (Up)<br />Lat: {c[0]}, Lon: {c[1]}
+                      </Popup>
+                    </Marker>
+                  ))}
+                  {toLatLng(ds.coords_down).map((c, idx) => (
+                    <Marker key={`down-${i}-${idx}`} position={c}>
+                      <Popup>
+                        {ds.name} (Down)<br />Lat: {c[0]}, Lon: {c[1]}
+                      </Popup>
+                    </Marker>
+                  ))}
+                </>
               ))}
-            </ul>
-            <div className="h-[35vh] sm:h-[55vh] w-full border rounded overflow-hidden">
-              {/* MapContainer di sini */}
-            </div>
-          </>
+            </MapContainer>
+          </div>
         ) : (
           <p className="text-gray-500">No sources selected</p>
         )}
       </ResponsiveCard>
 
-      {/* 🔹 Action */}
+      {/* Action */}
       <ResponsiveCard
         footer={
           <>
