@@ -20,9 +20,8 @@ RUN npm install -g serve
 
 COPY --from=builder /app/dist ./dist
 
-# Railway injects PORT → fallback ke 3000
-ENV PORT=3000
+# Railway injects PORT
 EXPOSE 3000
 
-# ✅ pakai sh -c agar ekspansi ${PORT} jalan
-CMD ["sh", "-c", "serve -s dist -l :${PORT:-3000}"]
+# ✅ hanya gunakan ${PORT} dari Railway
+CMD ["sh", "-c", "serve -s dist -l :${PORT}"]
