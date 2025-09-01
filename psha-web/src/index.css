@@ -228,3 +228,32 @@ button.theme-toggle:hover {
 [data-theme="dark"] .three-canvas {
   background-color: #111827; /* Tailwind gray-900 */
 }
+
+/* GMPE List Item */
+.gmpe-item {
+  @apply cursor-pointer px-3 py-2 rounded border flex items-center justify-between transition-colors;
+  border-color: var(--color-border);
+  background-color: var(--card);
+  color: var(--text);
+}
+
+.gmpe-item:hover {
+  background-color: #374151; /* lebih gelap dari hover sebelumnya #1f2937 */
+}
+
+.gmpe-item.selected {
+  background-color: #4b5563; /* dark slate blue-ish untuk selected */
+  border-color: #2563eb; /* biru agak kontras */
+}
+
+/* Input di dalam GMPE item tetap sama */
+.gmpe-item input {
+  @apply w-20 border rounded px-2 py-1 text-right;
+  border-color: var(--color-border);
+  background-color: var(--card);
+  color: var(--text);
+}
+
+.gmpe-item input:hover {
+  background-color: var(--hover);
+}

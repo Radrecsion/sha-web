@@ -117,11 +117,11 @@ export default function SeismicModelTab({
                 <div
                   key={gmpe.id}
                   onClick={() => toggleGmpe(gmpe)}
-                  className={`cursor-pointer px-3 py-2 rounded border flex items-center justify-between ${
-                    selected ? "bg-blue-100 border-blue-400" : "hover:bg-gray-100 border-gray-300"
-                  }`}
+                  className={`gmpe-item ${selected ? "selected" : ""}`}
                 >
-                  <span>{gmpe.name} ({gmpe.year || "-"}, {gmpe.tectonic_region || gmpe.region || "-"})</span>
+                  <span>
+                    {gmpe.name} ({gmpe.year || "-"}, {gmpe.tectonic_region || gmpe.region || "-"})
+                  </span>
                   {selected && (
                     <input
                       type="number"
@@ -129,7 +129,6 @@ export default function SeismicModelTab({
                       value={selected.weight}
                       onChange={(e) => handleWeightChange(gmpe.id, e.target.value)}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-20 border rounded px-2 py-1 text-right"
                     />
                   )}
                 </div>
@@ -137,6 +136,7 @@ export default function SeismicModelTab({
             })
           )}
         </div>
+
 
         <div className={`mt-2 text-sm ${Math.abs(selectedGmpes.reduce((sum, g) => sum + (g.weight || 0), 0) - 1.0) > 0.001 ? "text-red-600 font-semibold" : "text-gray-600"}`}>
           Total weight = <strong>{selectedGmpes.reduce((sum, g) => sum + (g.weight || 0), 0).toFixed(2)}</strong> 
