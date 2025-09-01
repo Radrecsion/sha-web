@@ -8,6 +8,9 @@ import {
   Polyline,
   useMap,
 } from "react-leaflet";
+import iconUrl from "leaflet/dist/images/marker-icon.png";
+import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+import shadowUrl from "leaflet/dist/images/marker-shadow.png";
 import L from "leaflet";
 import axios from "axios";
 import ResponsiveCard from "../../components/common/ResponsiveCard";
@@ -15,9 +18,9 @@ import ResponsiveCard from "../../components/common/ResponsiveCard";
 // 🔹 Override default marker icon agar muncul
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-  iconUrl: require("leaflet/dist/images/marker-icon.png"),
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
 });
 
 // 🔹 Helper validasi koordinat
