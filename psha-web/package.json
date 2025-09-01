@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview --port $PORT --host",
+    "start": "serve -s dist -l :${PORT:-3000}",
+    "preview": "vite preview --port ${PORT:-3000} --host",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
