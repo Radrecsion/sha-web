@@ -63,19 +63,19 @@ export default function SeismicModelTab({
   };
 
   /** ================== FILTER GMPE ================== */
-  const filteredGmpes = gmpeList.filter((gmpe) => {
-    if (siteParameter && gmpe.site_type?.toLowerCase() !== siteParameter.toLowerCase())
-      return false;
+  // const filteredGmpes = gmpeList.filter((gmpe) => {
+  //   if (siteParameter && gmpe.site_type?.toLowerCase() !== siteParameter.toLowerCase())
+  //     return false;
 
-    if (selectedSources.length > 0) {
-      const selectedMechanisms = selectedSources.map((ds) =>
-        ds.mechanism?.toLowerCase()
-      );
-      if (!selectedMechanisms.includes(gmpe.mechanism?.toLowerCase())) return false;
-    }
+  //   if (selectedSources.length > 0) {
+  //     const selectedMechanisms = selectedSources.map((ds) =>
+  //       ds.mechanism?.toLowerCase()
+  //     );
+  //     if (!selectedMechanisms.includes(gmpe.mechanism?.toLowerCase())) return false;
+  //   }
 
-    return true;
-  });
+  //   return true;
+  // });
 
   /** ================== RENDER ================== */
   if (loading) return <div className="p-4">⏳ Memuat GMPE...</div>;
