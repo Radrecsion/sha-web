@@ -1,27 +1,25 @@
-# ============================
-# Stage 1: Build
-# ============================
+# Stage 1: Build React
 FROM node:20 AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps
+RUN npm install
 
-COPY . .
+COPY . ./
 RUN npm run build
 
-# ============================
-# Stage 2: Serve
-# ============================
-FROM node:20-alpine AS runner
-WORKDIR /app
+# Stage 2: Serve with Nginx
+FROM nginx:1.27-alpine AS runner
+WORKDIR /usr/share/nginx/html
 
-RUN npm install -g serve
+# Hapus file default
+RUN rm -rf ./*
 
-COPY --from=builder /app/dist ./dist
+# Copy hasil build dari stage builder
+COPY --from=builder /app/dist ./
 
-# Railway injects PORT
+# Copy konfigurasi nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 3000
-
-# ✅ hanya gunakan ${PORT} dari Railway
-CMD ["sh", "-c", "serve -s dist -l :${PORT}"]
+CMD ["nginx", "-g", "daemon off;"]
