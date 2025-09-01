@@ -13,8 +13,7 @@ fi
 
 # Ganti placeholder dengan env var Railway
 echo "🔧 Mengganti placeholder config.js dengan env vars"
-envsubst '${PORT}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
-
+envsubst < "$CONFIG_PATH" > "$RUNTIME_PATH"
 mv "$RUNTIME_PATH" "$CONFIG_PATH"
 
 # Jalankan Nginx di foreground
