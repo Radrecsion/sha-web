@@ -21,8 +21,6 @@ APP_PORT = "8000"
 name = "psha-web"
 path = "psha-web"       # HARUS folder yang ada package.json
 type = "docker"         # pakai docker, bukan static
-build_command = "docker build -t frontend ."
-start_command = "docker run -p $PORT:$PORT frontend"
 
 [services.frontend.env]
 VITE_API_URL = "https://sha-api-production.up.railway.app/api/v1"
