@@ -146,7 +146,8 @@ export default function Topbar({
       {showLoginModal && (
         <LoginModal
           apiUrl={apiUrl}
-          theme={theme}  // tambahkan ini
+          theme={darkMode ? "dark" : "light"} // pakai state darkMode
+          show={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onLogin={(userData) => {
             setUser(userData);
@@ -158,6 +159,7 @@ export default function Topbar({
           }}
         />
       )}
+
 
       {/* Profile Modal */}
       {showProfileModal && user && (
