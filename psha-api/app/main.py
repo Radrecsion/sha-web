@@ -31,6 +31,10 @@ Base.metadata.create_all(bind=engine)
 # ======= FastAPI app =======
 app = FastAPI(title="PSHA API", version="1.0.0")
 
+# Session middleware wajib untuk Google OAuth
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+
+
 # Supaya React bisa akses API tanpa error CORS
 app.add_middleware(
     CORSMiddleware,
