@@ -6,6 +6,7 @@ import ProfileModal from "../../modals/ProfileModal";
 export default function Topbar({
   onNewProject,
   onHelp,
+  theme,
   onMenuToggle,
   apiUrl,
   user: userProp,
@@ -145,6 +146,7 @@ export default function Topbar({
       {showLoginModal && (
         <LoginModal
           apiUrl={apiUrl}
+          theme={theme}  // tambahkan ini
           onClose={() => setShowLoginModal(false)}
           onLogin={(userData) => {
             setUser(userData);
