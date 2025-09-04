@@ -2,10 +2,38 @@ import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
+export const API_URL = window.RUNTIME_CONFIG?.API_URL || "http://localhost:8000/api/v1";
+
 export default function Layout({ children }) {
   const [activeTab, setActiveTab] = useState("analysis");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState("light"); // default light
+  const [theme, setTheme] = useState("light");
+  const [currentProject, setCurrentProject] = useState(null);
+  const [user, setUser] = useState(null);
+
+  // Ambil user dari Google OAuth atau localStorage
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    const username = urlParams.get("username");
+    const avatar = urlParams.get("avatar");
+
+    if (token && username) {
+      const userData = { username, token, avatar };
+      localStorage.setItem("access_token", token);
+      localStorage.setItem("username", username);
+      localStorage.setItem("avatar", avatar || "");
+      setUser(userData);
+
+      // bersihkan URL query
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      const token = localStorage.getItem("access_token");
+      const username = localStorage.getItem("username");
+      const avatar = localStorage.getItem("avatar");
+      if (token && username) setUser({ username, token, avatar });
+    }
+  }, []);
 
   // Update theme di <html>
   useEffect(() => {
@@ -22,6 +50,7 @@ export default function Layout({ children }) {
         setActiveTab={setActiveTab}
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
+        setCurrentProject={setCurrentProject}
       />
 
       {/* Main Wrapper */}
@@ -30,12 +59,15 @@ export default function Layout({ children }) {
         <Topbar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          onSaveClick={() => alert("Save clicked")}
-          onLoadClick={(src) => alert("Load from " + src)}
-          onHelpClick={() => alert("Help clicked")}
+          onSave={() => alert("Save clicked")}
+          onLoad={(src) => alert("Load from " + src)}
+          onHelp={() => alert("Help clicked")}
           onMenuToggle={() => setSidebarOpen((v) => !v)}
           onThemeToggle={toggleTheme}
           theme={theme}
+          user={user}
+          apiUrl={API_URL} // untuk login Google
+          onUserUpdate={setUser} // untuk update user setelah login/logout
         />
 
         {/* Main Content */}

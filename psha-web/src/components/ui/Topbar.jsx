@@ -1,14 +1,23 @@
 import { useState, useEffect } from "react";
 import { Menu, Sun, Moon } from "lucide-react";
+import LoginModal from "../../modals/LoginModal";
+import ProfileModal from "../../modals/ProfileModal";
 
 export default function Topbar({
+  activeTab,
   setActiveTab,
   onSave,
   onLoad,
   onHelp,
+  onMenuToggle,
+  apiUrl,
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const menu = [
     { key: "analysis", label: "PSHA" },
@@ -16,20 +25,16 @@ export default function Topbar({
     { key: "gmpe", label: "Attenuation" },
   ];
 
-  // cek preferensi awal theme
+  // Ambil theme + user dari localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setDarkMode(savedTheme === "dark");
-      document.documentElement.setAttribute("data-theme", savedTheme);
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setDarkMode(prefersDark);
-      document.documentElement.setAttribute(
-        "data-theme",
-        prefersDark ? "dark" : "light"
-      );
-    }
+    setDarkMode(savedTheme === "dark");
+    document.documentElement.setAttribute("data-theme", savedTheme || "light");
+
+    const token = localStorage.getItem("access_token");
+    const username = localStorage.getItem("username");
+    const avatar = localStorage.getItem("avatar");
+    if (token && username) setUser({ username, token, avatar });
   }, []);
 
   const toggleTheme = () => {
@@ -37,6 +42,14 @@ export default function Topbar({
     setDarkMode(!darkMode);
     document.documentElement.setAttribute("data-theme", newTheme);
     localStorage.setItem("theme", newTheme);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("username");
+    localStorage.removeItem("avatar");
+    localStorage.removeItem("access_token");
+    setUser(null);
+    setIsDropdownOpen(false);
   };
 
   const renderButton = (label, onClick, colorClass) => (
@@ -51,10 +64,9 @@ export default function Topbar({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[var(--card)] text-[var(--text)] shadow">
       <div className="px-4 py-3 flex justify-between items-center">
-        {/* Logo + Burger */}
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => setIsDrawerOpen(true)}
+            onClick={onMenuToggle}
             className="md:hidden p-2 rounded-lg hover:bg-[var(--hover)]"
           >
             <Menu size={24} />
@@ -62,16 +74,53 @@ export default function Topbar({
           <span className="text-xl font-bold">SHA-Web</span>
         </div>
 
-        {/* Right section */}
         <div className="flex items-center space-x-4">
-          {/* Desktop menu */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {renderButton("Save", onSave, "hover:text-blue-400")}
-            {renderButton("Load", () => onLoad("file"), "hover:text-green-400")}
+          <nav className="hidden md:flex items-center space-x-4">
+            {!user && renderButton("Login", () => setShowLoginModal(true), "hover:text-blue-400")}
+
+            {user && (
+              <div className="relative">
+                <div
+                  className="flex items-center space-x-2 cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  {user.avatar ? (
+                    <img src={user.avatar} className="w-8 h-8 rounded-full" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
+                      {user.username[0].toUpperCase()}
+                    </div>
+                  )}
+                  <span>{user.username}</span>
+                </div>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-40 bg-[var(--card)] shadow-lg rounded border border-gray-600 z-50">
+                    <button
+                      className="block w-full text-left px-3 py-2 hover:bg-gray-600"
+                      onClick={() => {
+                        setShowProfileModal(true);
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      Profile
+                    </button>
+                    <button
+                      className="block w-full text-left px-3 py-2 hover:bg-gray-600"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {user && renderButton("Save", onSave, "hover:text-blue-400")}
+            {user && renderButton(() => onLoad("file"), "Load", "hover:text-green-400")}
             {renderButton("Help", onHelp, "hover:text-gray-400")}
           </nav>
 
-          {/* Theme toggle always visible */}
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-[var(--hover)] transition"
@@ -82,16 +131,12 @@ export default function Topbar({
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       {isDrawerOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
-          {/* Overlay */}
           <div
             className="fixed inset-0 bg-black bg-opacity-50"
             onClick={() => setIsDrawerOpen(false)}
           ></div>
-
-          {/* Drawer Content */}
           <aside className="relative z-50 w-64 bg-[var(--card)] text-[var(--text)] p-6 h-full pt-16 shadow-lg">
             <button
               onClick={() => setIsDrawerOpen(false)}
@@ -99,16 +144,12 @@ export default function Topbar({
             >
               ✕
             </button>
-
-            {/* Navigation */}
             <nav className="flex flex-col space-y-2 mt-6">
               {menu.map((item) => (
                 <button
                   key={item.key}
                   className={`text-left px-3 py-2 rounded-lg transition ${
-                    activeTab === item.key
-                      ? "bg-blue-600 text-white"
-                      : "hover:bg-[var(--hover)]"
+                    activeTab === item.key ? "bg-blue-600 text-white" : "hover:bg-[var(--hover)]"
                   }`}
                   onClick={() => {
                     setActiveTab(item.key);
@@ -119,17 +160,24 @@ export default function Topbar({
                 </button>
               ))}
             </nav>
-
-            <hr className="my-4 border-gray-600" />
-
-            {/* Actions */}
-            <div className="flex flex-col space-y-2">
-              {renderButton("Save", onSave, "hover:text-blue-400")}
-              {renderButton("Load", () => onLoad("file"), "hover:text-green-400")}
-              {renderButton("Help", onHelp, "hover:text-gray-400")}
-            </div>
           </aside>
         </div>
+      )}
+
+      {showLoginModal && (
+        <LoginModal
+          apiUrl={apiUrl}
+          onClose={() => setShowLoginModal(false)}
+          onLogin={(userData) => setUser(userData)}
+        />
+      )}
+
+      {showProfileModal && user && (
+        <ProfileModal
+          user={user}
+          onClose={() => setShowProfileModal(false)}
+          onUpdate={(updatedUser) => setUser(updatedUser)}
+        />
       )}
     </header>
   );

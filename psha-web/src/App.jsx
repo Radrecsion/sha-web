@@ -12,75 +12,55 @@ import SaveProjectModal from "./modals/SaveProjectModal";
 import LoadProjectModal from "./modals/LoadProjectModal";
 import HelpModal from "./modals/HelpModal";
 
-
 import { saveProject } from "./services/projectService";
+import axios from "axios";
 
 // Ambil API_URL dari runtime config
 export const API_URL = window.RUNTIME_CONFIG?.API_URL || "http://localhost:8000/api/v1";
-
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("analysis");
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
-  const [data, setData] = useState(null);
 
   const [siteData, setSiteData] = useState({});
   const [datasources, setDatasources] = useState([]);
   const [gmpeList, setGmpeList] = useState([]);
 
-  // untuk simpan hasil pilihan di SeismicModelTab
   const [selectedSources, setSelectedSources] = useState([]);
   const [selectedGmpes, setSelectedGmpes] = useState([]);
 
-  // modal states
   const [isSaveOpen, setIsSaveOpen] = useState(false);
   const [isLoadOpen, setIsLoadOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
-// Debug: cek runtime API_URL
+  const [currentProject, setCurrentProject] = useState(null);
+  const [user, setUser] = useState(null);
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  /** ================== LOGIN / USER ================== */
   useEffect(() => {
-    console.log("Runtime API URL:", API_URL);
-  }, []);
+    const token = localStorage.getItem("access_token");
+    const username = localStorage.getItem("username");
+    const avatar = urlParams.get("avatar");
 
-  /** ================== HANDLERS ================== */
-  function handleRun({ result, siteData, selectedSources, selectedGmpes, error }) {
-    if (error) {
-      setError(error);
-      setToast({ type: "error", message: error });
-    } else {
-      setResult(result);
-      setError(null);
-      setToast({ type: "success", message: "Analysis completed successfully!" });
+    if (token && username) {
+      const userData = { username, token, avatar };
+      localStorage.setItem("access_token", token);
+      localStorage.setItem("username", username);
+      localStorage.setItem("avatar", avatar || "");
+      setUser(userData);
+
+      // hapus query params biar URL bersih
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-    setTimeout(() => setToast(null), 4000);
-  }
+  }, []);
+  
 
-  function handleSaveProject(name) {
-    const project = {
-      name,
-      site: siteData,
-      datasources,
-      selectedSources,
-      selectedGmpes,
-    };
-    saveProject(project);
-    setToast({ type: "success", message: `Project "${name}" saved!` });
-    setTimeout(() => setToast(null), 3000);
-  }
-
-  function handleLoadProject(project) {
-    setSiteData(project.site || {});
-    setDatasources(project.datasources || []);
-    setSelectedSources(project.selectedSources || []);
-    setSelectedGmpes(project.selectedGmpes || []);
-    setToast({ type: "info", message: `Project "${project.name}" loaded!` });
-    setTimeout(() => setToast(null), 3000);
-  }
-
-  /** ================== FETCH ================== */
-async function fetchDatasources() {
+  /** ================== FETCH DATA ================== */
+  async function fetchDatasources() {
     try {
       const res = await fetch(`${API_URL}/datasource/`);
       if (!res.ok) throw new Error(`Fetch datasource status: ${res.status}`);
@@ -113,23 +93,88 @@ async function fetchDatasources() {
     fetchGmpes();
   }, []);
 
+  /** ================== HANDLERS ================== */
+  function handleRun({ result, siteData, selectedSources, selectedGmpes, error }) {
+    if (error) {
+      setError(error);
+      setToast({ type: "error", message: error });
+    } else {
+      setResult(result);
+      setError(null);
+      setToast({ type: "success", message: "Analysis completed successfully!" });
+    }
+    setTimeout(() => setToast(null), 4000);
+  }
+
+  function handleSaveProject(name) {
+    if (!user) {
+      setToast({ type: "error", message: "Login dulu sebelum menyimpan project!" });
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+
+    const project = {
+      name,
+      site: siteData,
+      datasources,
+      selectedSources,
+      selectedGmpes,
+    };
+
+    saveProject(project, user.token)
+      .then(() => {
+        setToast({ type: "success", message: `Project "${name}" saved!` });
+        setTimeout(() => setToast(null), 3000);
+      })
+      .catch((err) => {
+        console.error(err);
+        setToast({ type: "error", message: "Gagal menyimpan project" });
+        setTimeout(() => setToast(null), 3000);
+      });
+  }
+
+  function handleLoadProject(project) {
+    setSiteData(project.site || {});
+    setDatasources(project.datasources || []);
+    setSelectedSources(project.selectedSources || []);
+    setSelectedGmpes(project.selectedGmpes || []);
+    setCurrentProject(project);
+
+    setActiveTab("analysis");
+    setToast({ type: "info", message: `Project "${project.name}" loaded!` });
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  /** ================== EFFECT LOAD PROJECT ================== */
+  useEffect(() => {
+    if (currentProject) {
+      handleLoadProject(currentProject);
+    }
+  }, [currentProject]);
+
   /** ================== RENDER ================== */
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--text)]">
       {/* Topbar */}
-      <Topbar
-        onSave={() => setIsSaveOpen(true)}
-        onLoad={() => setIsLoadOpen(true)}
-        onHelp={() => setIsHelpOpen(true)}
-        setActiveTab={setActiveTab}
-      />
-
+    <Topbar
+      onSave={() => setIsSaveOpen(true)}
+      onLoad={() => setIsLoadOpen(true)}
+      onHelp={() => setIsHelpOpen(true)}
+      setActiveTab={setActiveTab}
+      user={user}
+      apiUrl={API_URL}
+      onUserUpdate={setUser}
+    />
 
       <div className="flex flex-1 pt-14">
-        {/* Sidebar hanya muncul di desktop */}
-        <div className="hidden md:block">
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        </div>
+        {/* Sidebar */}
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isOpen={sidebarOpen}
+          setIsOpen={setSidebarOpen}
+          setCurrentProject={setCurrentProject}
+        />
 
         {/* Main Content */}
         <main className="flex-1 p-6 overflow-y-auto">
@@ -153,10 +198,7 @@ async function fetchDatasources() {
           )}
 
           {activeTab === "datasource" && (
-            <DataSourceForm
-              datasources={datasources}
-              setDatasources={setDatasources}
-            />
+            <DataSourceForm datasources={datasources} setDatasources={setDatasources} />
           )}
 
           {activeTab === "gmpe" && <GmpePage gmpeList={gmpeList} />}
@@ -164,20 +206,9 @@ async function fetchDatasources() {
       </div>
 
       {/* Modals */}
-      <SaveProjectModal
-        isOpen={isSaveOpen}
-        onClose={() => setIsSaveOpen(false)}
-        onSave={handleSaveProject}
-      />
-      <LoadProjectModal
-        isOpen={isLoadOpen}
-        onClose={() => setIsLoadOpen(false)}
-        onLoad={handleLoadProject}
-      />
-      <HelpModal
-        isOpen={isHelpOpen}
-        onClose={() => setIsHelpOpen(false)}
-      />
+      <SaveProjectModal isOpen={isSaveOpen} onClose={() => setIsSaveOpen(false)} onSave={handleSaveProject} />
+      <LoadProjectModal isOpen={isLoadOpen} onClose={() => setIsLoadOpen(false)} onLoad={handleLoadProject} />
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </div>
   );
 }
