@@ -72,6 +72,11 @@ app.include_router(projects.router, prefix="/api/v1", tags=["projects"])
 def read_root():
     return {"message": "PSHA API is running"}
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/run-psha")
 def run_psha(lat: float, lon: float, rp: int = 475):
     periods = [0.1, 0.2, 0.5, 1.0, 2.0]
