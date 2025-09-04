@@ -1,17 +1,19 @@
 fastapi
 uvicorn[standard]
 gunicorn
+
 pydantic
 pydantic-settings
 sqlalchemy
 psycopg2-binary==2.9.7
+
 numpy==1.26.4
 scipy==1.11.3
 pandas==2.1.1
-openquake.engine==3.17.1
 h5py==3.14.0
 alembic
 
+openquake.hazardlib==3.17.1
 
 python-jose[cryptography]
 passlib[bcrypt]
