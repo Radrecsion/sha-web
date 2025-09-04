@@ -4,11 +4,12 @@ gunicorn
 pydantic
 pydantic-settings
 sqlalchemy
-psycopg2-binary
-numpy<2.0
-pandas
-scipy
+psycopg2-binary==2.9.7
+numpy==1.26.5
+pandas==2.1.1
+scipy==1.11.3
 openquake.engine==3.17.1
+h5py==3.14.0
 alembic
 
 
