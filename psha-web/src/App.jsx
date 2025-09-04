@@ -9,7 +9,6 @@ import Sidebar from "./components/ui/Sidebar";
 import Topbar from "./components/ui/Topbar";
 
 import SaveProjectModal from "./modals/SaveProjectModal";
-import LoadProjectModal from "./modals/LoadProjectModal";
 import HelpModal from "./modals/HelpModal";
 import LoginModal from "./modals/LoginModal";
 
@@ -34,7 +33,6 @@ export default function App() {
   const [selectedGmpes, setSelectedGmpes] = useState([]);
 
   const [isSaveOpen, setIsSaveOpen] = useState(false);
-  const [isLoadOpen, setIsLoadOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -42,7 +40,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  /** ================== CHECK LOGIN COOKIE / LOCALSTORAGE ================== */
+  /** ================== CHECK LOGIN ================== */
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -53,7 +51,7 @@ export default function App() {
           localStorage.setItem("username", userData.username);
           localStorage.setItem("avatar", userData.avatar || "");
         }
-      } catch (err) {
+      } catch {
         console.log("User not logged in yet");
       }
     };
@@ -64,7 +62,6 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("login") === "success") {
-      // User baru login via OAuth, fetch user
       axios
         .get(`${API_URL}/auth/me`, { withCredentials: true })
         .then((res) => {
@@ -124,6 +121,16 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const handleNewProject = () => {
+    setSiteData({});
+    setDatasources([]);
+    setSelectedSources([]);
+    setSelectedGmpes([]);
+    setCurrentProject(null);
+    setToast({ type: "info", message: "New project started!" });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleSaveProject = (name) => {
     if (!user) {
       setToast({ type: "error", message: "Login dulu sebelum menyimpan project!" });
@@ -160,11 +167,6 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  /** ================== EFFECT LOAD PROJECT ================== */
-  useEffect(() => {
-    if (currentProject) handleLoadProject(currentProject);
-  }, [currentProject]);
-
   /** ================== RENDER ================== */
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--text)]">
@@ -172,8 +174,7 @@ export default function App() {
       <Topbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onSave={() => setIsSaveOpen(true)}
-        onLoad={() => setIsLoadOpen(true)}
+        onNewProject={handleNewProject}
         onHelp={() => setIsHelpOpen(true)}
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         apiUrl={API_URL}
@@ -225,11 +226,6 @@ export default function App() {
         isOpen={isSaveOpen}
         onClose={() => setIsSaveOpen(false)}
         onSave={handleSaveProject}
-      />
-      <LoadProjectModal
-        isOpen={isLoadOpen}
-        onClose={() => setIsLoadOpen(false)}
-        onLoad={handleLoadProject}
       />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 

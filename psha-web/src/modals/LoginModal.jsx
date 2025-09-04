@@ -13,13 +13,22 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("login") === "success") {
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        onClose();
-      }, 2000);
+      axios
+        .get(`${apiUrl}/auth/me`, { withCredentials: true })
+        .then((res) => {
+          if (res.data.email) {
+            const userData = { username: res.data.email, avatar: "" };
+            onLogin(userData);
+            setSuccess(true);
+            setTimeout(() => {
+              setSuccess(false);
+              onClose();
+            }, 2000);
+          }
+        })
+        .catch(console.error);
     }
-  }, [onClose]);
+  }, [apiUrl, onClose, onLogin]);
 
   /** ----------------------------- */
   /** Manual login */
@@ -36,14 +45,11 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
         }
       );
 
-      // Ambil user profile
       const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
       if (res.data.email) {
         const userData = { username: res.data.email, avatar: "" };
         onLogin(userData);
         setSuccess(true);
-
-        // auto close modal
         setTimeout(() => {
           setSuccess(false);
           onClose();
@@ -66,11 +72,14 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
   return (
     <>
       {/* Overlay */}
-      <div className={`modal-overlay ${success ? "animate-fade-in" : ""}`} onClick={onClose}></div>
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-50"
+        onClick={onClose}
+      />
 
       {/* Modal Content */}
-      <div className={`modal-content ${success ? "animate-slide-fade-in" : ""}`}>
-        <h2 className="text-lg font-bold mb-4">Login</h2>
+      <div className="fixed z-50 top-1/2 left-1/2 w-full max-w-md p-6 bg-[var(--card)] text-[var(--text)] rounded-lg shadow-lg transform -translate-x-1/2 -translate-y-1/2">
+        <h2 className="text-lg font-bold mb-4 text-center">Login</h2>
 
         <input
           className="w-full mb-2 p-2 border rounded"
@@ -88,7 +97,7 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
           disabled={loading || success}
         />
 
-        {errorMsg && <p className="text-red-500 text-sm mb-2">{errorMsg}</p>}
+        {errorMsg && <p className="text-red-500 text-sm mb-2 text-center">{errorMsg}</p>}
 
         {success && (
           <div className="toast toast-success mb-2 text-center">

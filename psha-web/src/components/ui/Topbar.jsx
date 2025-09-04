@@ -4,30 +4,20 @@ import LoginModal from "../../modals/LoginModal";
 import ProfileModal from "../../modals/ProfileModal";
 
 export default function Topbar({
-  activeTab,
-  setActiveTab,
   onSave,
-  onLoad,
-  onHelp,
+  onNewProject,
   onMenuToggle,
   apiUrl,
-  user: userProp,         // menerima user dari App
-  onUserUpdate,           // callback untuk update user state di App
+  user: userProp,
+  onUserUpdate,
 }) {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const menu = [
-    { key: "analysis", label: "PSHA" },
-    { key: "datasource", label: "Datasource" },
-    { key: "gmpe", label: "Attenuation" },
-  ];
-
-  // Ambil theme dari localStorage & set state
+  // Theme dari localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     setDarkMode(savedTheme === "dark");
@@ -65,7 +55,7 @@ export default function Topbar({
   const renderButton = (label, onClick, colorClass) => (
     <button
       onClick={onClick}
-      className={`relative transition-colors ${colorClass}`}
+      className={`px-3 py-1 rounded hover:opacity-80 transition ${colorClass}`}
     >
       {label}
     </button>
@@ -85,10 +75,10 @@ export default function Topbar({
         </div>
 
         <div className="flex items-center space-x-4">
-          <nav className="hidden md:flex items-center space-x-4">
-            {!user && renderButton("Login", () => setShowLoginModal(true), "hover:text-blue-400")}
+          {user ? (
+            <>
+              {renderButton("New Project", onNewProject, "bg-green-500 text-white")}
 
-            {user && (
               <div className="relative">
                 <div
                   className="flex items-center space-x-2 cursor-pointer"
@@ -117,6 +107,15 @@ export default function Topbar({
                     </button>
                     <button
                       className="block w-full text-left px-3 py-2 hover:bg-gray-600"
+                      onClick={() => {
+                        console.log("Open Settings");
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      Settings
+                    </button>
+                    <button
+                      className="block w-full text-left px-3 py-2 hover:bg-gray-600"
                       onClick={handleLogout}
                     >
                       Logout
@@ -124,12 +123,10 @@ export default function Topbar({
                   </div>
                 )}
               </div>
-            )}
-
-            {user && renderButton("Save", onSave, "hover:text-blue-400")}
-            {user && renderButton(() => onLoad("file"), "Load", "hover:text-green-400")}
-            {renderButton("Help", onHelp, "hover:text-gray-400")}
-          </nav>
+            </>
+          ) : (
+            renderButton("Login", () => setShowLoginModal(true), "hover:text-blue-400")
+          )}
 
           <button
             onClick={toggleTheme}
@@ -141,39 +138,7 @@ export default function Topbar({
         </div>
       </div>
 
-      {isDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50"
-            onClick={() => setIsDrawerOpen(false)}
-          ></div>
-          <aside className="relative z-50 w-64 bg-[var(--card)] text-[var(--text)] p-6 h-full pt-16 shadow-lg">
-            <button
-              onClick={() => setIsDrawerOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
-            >
-              ✕
-            </button>
-            <nav className="flex flex-col space-y-2 mt-6">
-              {menu.map((item) => (
-                <button
-                  key={item.key}
-                  className={`text-left px-3 py-2 rounded-lg transition ${
-                    activeTab === item.key ? "bg-blue-600 text-white" : "hover:bg-[var(--hover)]"
-                  }`}
-                  onClick={() => {
-                    setActiveTab(item.key);
-                    setIsDrawerOpen(false);
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-          </aside>
-        </div>
-      )}
-
+      {/* Login Modal */}
       {showLoginModal && (
         <LoginModal
           apiUrl={apiUrl}
@@ -189,6 +154,7 @@ export default function Topbar({
         />
       )}
 
+      {/* Profile Modal */}
       {showProfileModal && user && (
         <ProfileModal
           user={user}
