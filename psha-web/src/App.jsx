@@ -11,6 +11,7 @@ import Topbar from "./components/ui/Topbar";
 import SaveProjectModal from "./modals/SaveProjectModal";
 import LoadProjectModal from "./modals/LoadProjectModal";
 import HelpModal from "./modals/HelpModal";
+import LoginModal from "./modals/LoginModal";
 
 import { saveProject } from "./services/projectService";
 import axios from "axios";
@@ -35,14 +36,15 @@ export default function App() {
   const [isSaveOpen, setIsSaveOpen] = useState(false);
   const [isLoadOpen, setIsLoadOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [currentProject, setCurrentProject] = useState(null);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  /** ================== AUTO-CHECK LOGIN ================== */
+  /** ================== CHECK LOGIN COOKIE / LOCALSTORAGE ================== */
   useEffect(() => {
-    const fetchUser = async () => {
+    const checkUser = async () => {
       try {
         const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
         if (res.data.email) {
@@ -55,39 +57,56 @@ export default function App() {
         console.log("User not logged in yet");
       }
     };
-    fetchUser();
+    checkUser();
+  }, []);
+
+  /** ================== HANDLE LOGIN CALLBACK ================== */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("login") === "success") {
+      // User baru login via OAuth, fetch user
+      axios
+        .get(`${API_URL}/auth/me`, { withCredentials: true })
+        .then((res) => {
+          if (res.data.email) {
+            const userData = { username: res.data.email, avatar: "" };
+            setUser(userData);
+            localStorage.setItem("username", userData.username);
+            localStorage.setItem("avatar", userData.avatar || "");
+            setToast({ type: "success", message: "Login successful!" });
+            setTimeout(() => setToast(null), 3000);
+          }
+        })
+        .catch(console.error);
+    }
   }, []);
 
   /** ================== FETCH DATA ================== */
-  const fetchDatasources = async () => {
-    try {
-      const res = await fetch(`${API_URL}/datasource/`);
-      if (!res.ok) throw new Error(`Fetch datasource status: ${res.status}`);
-      const data = await res.json();
-      if (Array.isArray(data)) setDatasources(data);
-      else if (Array.isArray(data.data)) setDatasources(data.data);
-      else setDatasources([]);
-    } catch (err) {
-      console.error("Gagal fetch datasources:", err);
-      setDatasources([]);
-    }
-  };
-
-  const fetchGmpes = async () => {
-    try {
-      const res = await fetch(`${API_URL}/gmpe/`);
-      if (!res.ok) throw new Error(`Fetch gmpe status: ${res.status}`);
-      const data = await res.json();
-      if (Array.isArray(data)) setGmpeList(data);
-      else if (Array.isArray(data.data)) setGmpeList(data.data);
-      else setGmpeList([]);
-    } catch (err) {
-      console.error("Gagal fetch gmpe:", err);
-      setGmpeList([]);
-    }
-  };
-
   useEffect(() => {
+    const fetchDatasources = async () => {
+      try {
+        const res = await fetch(`${API_URL}/datasource/`);
+        if (!res.ok) throw new Error(`Fetch datasource status: ${res.status}`);
+        const data = await res.json();
+        setDatasources(Array.isArray(data) ? data : data.data || []);
+      } catch (err) {
+        console.error("Gagal fetch datasources:", err);
+        setDatasources([]);
+      }
+    };
+
+    const fetchGmpes = async () => {
+      try {
+        const res = await fetch(`${API_URL}/gmpe/`);
+        if (!res.ok) throw new Error(`Fetch gmpe status: ${res.status}`);
+        const data = await res.json();
+        setGmpeList(Array.isArray(data) ? data : data.data || []);
+      } catch (err) {
+        console.error("Gagal fetch gmpe:", err);
+        setGmpeList([]);
+      }
+    };
+
     fetchDatasources();
     fetchGmpes();
   }, []);
@@ -111,7 +130,6 @@ export default function App() {
       setTimeout(() => setToast(null), 3000);
       return;
     }
-
     const project = {
       name,
       site: siteData,
@@ -119,14 +137,12 @@ export default function App() {
       selectedSources,
       selectedGmpes,
     };
-
     saveProject(project, user.token)
       .then(() => {
         setToast({ type: "success", message: `Project "${name}" saved!` });
         setTimeout(() => setToast(null), 3000);
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         setToast({ type: "error", message: "Gagal menyimpan project" });
         setTimeout(() => setToast(null), 3000);
       });
@@ -216,6 +232,21 @@ export default function App() {
         onLoad={handleLoadProject}
       />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
+      {/* Login modal */}
+      {showLoginModal && (
+        <LoginModal
+          apiUrl={API_URL}
+          onClose={() => setShowLoginModal(false)}
+          onLogin={(userData) => {
+            setUser(userData);
+            localStorage.setItem("access_token", userData.token || "");
+            localStorage.setItem("username", userData.username);
+            localStorage.setItem("avatar", userData.avatar || "");
+            setShowLoginModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }
