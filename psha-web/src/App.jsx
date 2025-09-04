@@ -42,6 +42,7 @@ export default function App() {
 
   /** ================== LOGIN / USER ================== */
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
     const token = localStorage.getItem("access_token");
     const username = localStorage.getItem("username");
     const avatar = urlParams.get("avatar");
