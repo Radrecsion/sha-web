@@ -7,23 +7,17 @@ export default function Topbar({
   onNewProject,
   onHelp,
   theme,
+  onThemeToggle,
   onMenuToggle,
   apiUrl,
   user: userProp,
   onUserUpdate,
 }) {
-  const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  /** ================== THEME ================== */
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setDarkMode(savedTheme === "dark");
-    document.documentElement.setAttribute("data-theme", savedTheme);
-  }, []);
 
   /** ================== SYNC USER ================== */
   useEffect(() => {
@@ -35,13 +29,6 @@ export default function Topbar({
       if (username && token) setUser({ username, avatar, token });
     }
   }, [userProp]);
-
-  const toggleTheme = () => {
-    const newTheme = darkMode ? "light" : "dark";
-    setDarkMode(!darkMode);
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("username");
@@ -66,10 +53,7 @@ export default function Topbar({
       <div className="px-4 py-3 flex justify-between items-center">
         {/* Left */}
         <div className="flex items-center space-x-4">
-          <button
-            onClick={onMenuToggle}
-            className="md:hidden p-2 rounded-lg hover:bg-[var(--hover)]"
-          >
+          <button onClick={onMenuToggle} className="md:hidden p-2 rounded-lg hover:bg-[var(--hover)]">
             <Menu size={24} />
           </button>
           <span className="text-xl font-bold">SHA-Web</span>
@@ -80,21 +64,17 @@ export default function Topbar({
           {user ? (
             <>
               {renderButton("New Project", onNewProject, "bg-green-500 text-white")}
-
               {/* User Dropdown */}
               <div className="relative">
-                <div
-                  className="flex items-center space-x-2 cursor-pointer"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                >
-                  {user?.avatar ? (
+                <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                  {user.avatar ? (
                     <img src={user.avatar} className="w-8 h-8 rounded-full" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
-                      {user?.username?.[0]?.toUpperCase() || "U"}
+                      {user.username?.[0]?.toUpperCase() || "U"}
                     </div>
                   )}
-                  <span>{user?.username || ""}</span>
+                  <span>{user.username || ""}</span>
                 </div>
 
                 {isDropdownOpen && (
@@ -108,16 +88,10 @@ export default function Topbar({
                     >
                       Profile
                     </button>
-                    <button
-                      className="block w-full text-left px-3 py-2 hover:bg-gray-600"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
+                    <button className="block w-full text-left px-3 py-2 hover:bg-gray-600" onClick={() => setIsDropdownOpen(false)}>
                       Settings
                     </button>
-                    <button
-                      className="block w-full text-left px-3 py-2 hover:bg-gray-600"
-                      onClick={handleLogout}
-                    >
+                    <button className="block w-full text-left px-3 py-2 hover:bg-gray-600" onClick={handleLogout}>
                       Logout
                     </button>
                   </div>
@@ -125,19 +99,11 @@ export default function Topbar({
               </div>
             </>
           ) : (
-            renderButton(
-              "Login",
-              () => setShowLoginModal(true),
-              "hover:text-blue-400"
-            )
+            renderButton("Login", () => setShowLoginModal(true), "hover:text-blue-400")
           )}
 
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-[var(--hover)] transition"
-            title="Toggle theme"
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          <button onClick={onThemeToggle} className="p-2 rounded-lg hover:bg-[var(--hover)] transition" title="Toggle theme">
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
       </div>
@@ -146,7 +112,7 @@ export default function Topbar({
       {showLoginModal && (
         <LoginModal
           apiUrl={apiUrl}
-          theme={darkMode ? "dark" : "light"} // pakai state darkMode
+          theme={theme} // gunakan prop theme
           show={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onLogin={(userData) => {
@@ -159,7 +125,6 @@ export default function Topbar({
           }}
         />
       )}
-
 
       {/* Profile Modal */}
       {showProfileModal && user && (
