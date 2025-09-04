@@ -19,23 +19,19 @@ export default function Topbar({
 
   /** ================== THEME ================== */
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    const theme = savedTheme || "light";
-    setDarkMode(theme === "dark");
-    document.documentElement.setAttribute("data-theme", theme);
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setDarkMode(savedTheme === "dark");
+    document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
 
-  /** ================== SYNC USER FROM PROPS ================== */
+  /** ================== SYNC USER ================== */
   useEffect(() => {
-    if (userProp) {
-      setUser(userProp);
-    } else {
+    if (userProp) setUser(userProp);
+    else {
       const username = localStorage.getItem("username");
       const avatar = localStorage.getItem("avatar");
       const token = localStorage.getItem("access_token");
-      if (username && token) {
-        setUser({ username, avatar, token });
-      }
+      if (username && token) setUser({ username, avatar, token });
     }
   }, [userProp]);
 
@@ -46,7 +42,6 @@ export default function Topbar({
     localStorage.setItem("theme", newTheme);
   };
 
-  /** ================== LOGOUT ================== */
   const handleLogout = () => {
     localStorage.removeItem("username");
     localStorage.removeItem("avatar");
@@ -56,7 +51,6 @@ export default function Topbar({
     if (onUserUpdate) onUserUpdate(null);
   };
 
-  /** ================== BUTTON HELPER ================== */
   const renderButton = (label, onClick, colorClass) => (
     <button
       onClick={onClick}
@@ -92,14 +86,14 @@ export default function Topbar({
                   className="flex items-center space-x-2 cursor-pointer"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
-                  {user.avatar ? (
+                  {user?.avatar ? (
                     <img src={user.avatar} className="w-8 h-8 rounded-full" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
-                      {user.username[0].toUpperCase()}
+                      {user?.username?.[0]?.toUpperCase() || "U"}
                     </div>
                   )}
-                  <span>{user.username}</span>
+                  <span>{user?.username || ""}</span>
                 </div>
 
                 {isDropdownOpen && (
@@ -115,10 +109,7 @@ export default function Topbar({
                     </button>
                     <button
                       className="block w-full text-left px-3 py-2 hover:bg-gray-600"
-                      onClick={() => {
-                        console.log("Open Settings");
-                        setIsDropdownOpen(false);
-                      }}
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       Settings
                     </button>
@@ -133,7 +124,11 @@ export default function Topbar({
               </div>
             </>
           ) : (
-            renderButton("Login", () => setShowLoginModal(true), "hover:text-blue-400")
+            renderButton(
+              "Login",
+              () => setShowLoginModal(true),
+              "hover:text-blue-400"
+            )
           )}
 
           <button

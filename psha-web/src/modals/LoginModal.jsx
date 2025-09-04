@@ -10,10 +10,12 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl, theme }) {
 
   if (!show) return null; // Hanya render jika show=true
 
+  /** ------------------ LOGIN MANUAL ------------------ */
   const handleLogin = async () => {
     setLoading(true);
     setErrorMsg("");
     try {
+      // POST login
       await axios.post(
         `${apiUrl}/auth/login`,
         `username=${username}&password=${password}`,
@@ -23,10 +25,12 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl, theme }) {
         }
       );
 
+      // GET user info
       const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
       if (res.data.email) {
         const userData = { username: res.data.email, avatar: res.data.avatar || "" };
-        onLogin(userData);
+        onLogin(userData);  // kirim ke parent
+        onClose();          // tutup modal
       }
     } catch (err) {
       console.error(err);
@@ -36,14 +40,21 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl, theme }) {
     }
   };
 
+  /** ------------------ GOOGLE LOGIN ------------------ */
   const handleGoogleLogin = () => {
-    window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(window.location.href)}`;
+    const redirectUrl = encodeURIComponent(window.location.href);
+    window.location.href = `${apiUrl}/auth/google?redirect=${redirectUrl}`;
   };
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={onClose} />
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-50"
+        onClick={onClose}
+      />
 
+      {/* Modal */}
       <div className="fixed z-50 top-1/2 left-1/2 w-full max-w-md p-6 bg-[var(--card)] text-[var(--text)] rounded-lg shadow-lg transform -translate-x-1/2 -translate-y-1/2">
         <h2 className="text-lg font-bold mb-4 text-center">Login</h2>
 
