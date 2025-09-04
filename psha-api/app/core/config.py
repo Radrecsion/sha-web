@@ -1,10 +1,9 @@
 # app/core/config.py
 from pydantic_settings import BaseSettings
-from typing import Optional
 import os
 from dotenv import load_dotenv
 
-# 1️⃣ Tentukan env file dulu
+# 1️⃣ Tentukan environment dan load .env
 env_mode = os.environ.get("ENVIRONMENT", "development").lower()
 env_file_map = {
     "production": ".env.production",
@@ -12,8 +11,6 @@ env_file_map = {
     "development": ".env.development"
 }
 env_file = env_file_map.get(env_mode, ".env.development")
-
-# 2️⃣ Load .env
 load_dotenv(env_file)
 
 class Settings(BaseSettings):
@@ -21,22 +18,27 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    DATABASE_URL: str  # tidak ada default, wajib ada di .env
+    DATABASE_URL: str
 
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: str = env_mode
     DEBUG: bool = True
 
     # OAuth Google
-    GOOGLE_CLIENT_ID: Optional[str] = None
-    GOOGLE_CLIENT_SECRET: Optional[str] = None
-    GOOGLE_REDIRECT_URI: Optional[str] = None
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_REDIRECT_URI: str
+
+    # Frontend URL
+    FRONTEND_URL: str = os.getenv(
+        "FRONTEND_URL",
+        "http://localhost:5173" if env_mode == "development" else "https://radrecsion.github.io/sha-web/"
+    )
 
     class Config:
-        env_file = None  # disable karena sudah load manual
+        env_file = None  # sudah load manual
         env_file_encoding = "utf-8"
 
-# 3️⃣ Buat instance, override pakai os.getenv
+# 3️⃣ Instance
 settings = Settings()
-

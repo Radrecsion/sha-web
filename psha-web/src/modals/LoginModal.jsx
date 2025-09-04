@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 
@@ -8,9 +8,20 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [closing, setClosing] = useState(false);
-  const [toast, setToast] = useState(null);
 
+  // Auto-check Google callback (misal ?login=success)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("login") === "success") {
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+      }, 2000);
+    }
+  }, [onClose]);
+
+  /** ----------------------------- */
   /** Manual login */
   const handleLogin = async () => {
     setLoading(true);
@@ -25,53 +36,40 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
         }
       );
 
+      // Ambil user profile
       const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
       if (res.data.email) {
         const userData = { username: res.data.email, avatar: "" };
         onLogin(userData);
         setSuccess(true);
-        setToast({ type: "success", message: "Login berhasil!" });
 
+        // auto close modal
         setTimeout(() => {
-          setClosing(true);
-          setTimeout(onClose, 400); // tunggu animasi selesai
+          setSuccess(false);
+          onClose();
         }, 2000);
       }
     } catch (err) {
       console.error(err);
       setErrorMsg("Login gagal, periksa username/password");
-      setToast({ type: "error", message: "Login gagal!" });
     } finally {
       setLoading(false);
     }
   };
 
+  /** ----------------------------- */
   /** Google OAuth login */
   const handleGoogleLogin = () => {
-    window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(
-      window.location.origin
-    )}`;
-  };
-
-  /** Handle close dengan animasi */
-  const handleClose = () => {
-    setClosing(true);
-    setTimeout(onClose, 400);
+    window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(window.location.href)}`;
   };
 
   return (
     <>
       {/* Overlay */}
-      <div
-        className={`modal-overlay ${closing ? "modal-overlay-close" : ""}`}
-        onClick={handleClose}
-      />
+      <div className={`modal-overlay ${success ? "animate-fade-in" : ""}`} onClick={onClose}></div>
 
-      {/* Content */}
-      <div
-        className={`modal-content ${closing ? "modal-content-close" : ""}`}
-        style={{ backgroundColor: "var(--card)", color: "var(--text)" }}
-      >
+      {/* Modal Content */}
+      <div className={`modal-content ${success ? "animate-slide-fade-in" : ""}`}>
         <h2 className="text-lg font-bold mb-4">Login</h2>
 
         <input
@@ -91,6 +89,12 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
         />
 
         {errorMsg && <p className="text-red-500 text-sm mb-2">{errorMsg}</p>}
+
+        {success && (
+          <div className="toast toast-success mb-2 text-center">
+            Login berhasil!
+          </div>
+        )}
 
         <div className="flex flex-col space-y-2">
           <button
@@ -115,7 +119,7 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
           </button>
 
           <button
-            onClick={handleClose}
+            onClick={onClose}
             className="w-full px-4 py-2 border rounded"
             disabled={loading || success}
           >
@@ -123,21 +127,6 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
           </button>
         </div>
       </div>
-
-      {/* Toast */}
-      {toast && (
-        <div
-          className={`toast ${
-            toast.type === "success"
-              ? "toast-success"
-              : toast.type === "error"
-              ? "toast-error"
-              : "toast-info"
-          }`}
-        >
-          {toast.message}
-        </div>
-      )}
     </>
   );
 }

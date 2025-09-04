@@ -1,16 +1,15 @@
-import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
+import logging
 
 from app.database import get_db
 from app.models.user import User
 from app.core.deps import get_current_user
 from app.core.security import pwd_context, create_access_token
 from app.core.config import settings
-
 from authlib.integrations.starlette_client import OAuth
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -36,17 +35,13 @@ oauth.register(
 @router.get("/google")
 async def login_via_google(request: Request):
     """Redirect ke Google untuk login"""
-    try:
-        redirect_uri = settings.GOOGLE_REDIRECT_URI
-        logger.info(f"[GOOGLE LOGIN] Redirect URI: {redirect_uri}")
-        return await oauth.google.authorize_redirect(request, redirect_uri)
-    except Exception as e:
-        logger.error(f"[GOOGLE LOGIN ERROR] {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Google OAuth redirect error: {e}")
+    redirect_uri = settings.GOOGLE_REDIRECT_URI
+    logger.info(f"[GOOGLE LOGIN] Redirect URI: {redirect_uri}")
+    return await oauth.google.authorize_redirect(request, redirect_uri)
 
 @router.get("/google/callback")
 async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
-    """Callback Google OAuth, set JWT cookie, lalu redirect front-end"""
+    """Callback Google OAuth, set JWT cookie, lalu redirect front-end dengan login success"""
     try:
         token = await oauth.google.authorize_access_token(request)
         user_info = token.get("userinfo")
@@ -72,8 +67,8 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
             expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         )
 
-        # Redirect ke front-end
-        front_url = "https://radrecsion.github.io/sha-web/"
+        # Redirect ke front-end dengan login=success
+        front_url = f"{settings.FRONTEND_URL}?login=success"
         response = RedirectResponse(url=front_url)
 
         # Set cookie httpOnly
@@ -81,7 +76,7 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
             key="access_token",
             value=jwt_token,
             httponly=True,
-            secure=True,        # hanya HTTPS
+            secure=True,
             samesite="lax",
             max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
         )
@@ -91,27 +86,9 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         logger.error(f"[GOOGLE CALLBACK ERROR] {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Google OAuth callback error: {e}")
 
-# ==========================
-# Register manual
-# ==========================
-@router.post("/register", status_code=201)
-def register_user(email: str, password: str, db: Session = Depends(get_db)):
-    """Register akun baru dengan email & password"""
-    user = db.query(User).filter(User.email == email).first()
-    if user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    hashed_pw = pwd_context.hash(password)
-    new_user = User(email=email, password_hash=hashed_pw)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    logger.info(f"[REGISTER] New user created: {email}")
-    return {"msg": "User created", "user_id": new_user.id}
 
 # ---------------------------
-# LOGIN MANUAL AMAN (pakai cookie)
+# Manual login aman (pakai cookie)
 # ---------------------------
 @router.post("/login")
 def login(
@@ -131,7 +108,8 @@ def login(
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
-    response = RedirectResponse(url=f"{settings.FRONTEND_URL}/login-success")
+    # Redirect ke front-end dengan login=success
+    response = RedirectResponse(url=f"{settings.FRONTEND_URL}?login=success")
     response.set_cookie(
         key="access_token",
         value=jwt_token,
@@ -141,14 +119,3 @@ def login(
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
     return response
-
-# ---------------------------
-# CHECK CURRENT USER
-# ---------------------------
-@router.get("/me")
-def read_users_me(current_user: User = Depends(get_current_user)):
-    return {
-        "id": current_user.id,
-        "email": current_user.email,
-        "created_at": current_user.created_at
-    }
