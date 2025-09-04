@@ -39,6 +39,9 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const savedTheme = localStorage.getItem("theme") || "light";
+  const [theme, setTheme] = useState(savedTheme);
+
   /** ================== CHECK LOGIN ================== */
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -172,6 +175,11 @@ export default function App() {
     setToast({ type: "info", message: `Project "${project.name}" loaded!` });
     setTimeout(() => setToast(null), 3000);
   };
+
+  // Sync ke <html> saat theme berubah
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   /** ================== RENDER ================== */
   return (
