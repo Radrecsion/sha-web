@@ -18,3 +18,4 @@ httpx
 authlib
 python-dotenv
 python-multipart
+itsdangerous

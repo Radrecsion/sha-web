@@ -10,7 +10,6 @@ from app.database import Base
 from app.core.config import settings
 
 
-
 # ======= Setup DB dengan retry =======
 DATABASE_URL = "postgresql+psycopg2://postgres:PIjMWkSHXZzFGcwprGpoUUcmdKRXKQwA@shortline.proxy.rlwy.net:48540/railway"
 max_retries = 10
