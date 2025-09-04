@@ -1,19 +1,15 @@
 fastapi
 uvicorn[standard]
 gunicorn
-
 pydantic
 pydantic-settings
 sqlalchemy
-psycopg2-binary==2.9.7
-
-numpy==1.26.4
-scipy==1.11.3
-pandas==2.1.1
-h5py==3.14.0
+psycopg2-binary
+numpy<2.0 --only-binary=:all:
+pandas --only-binary=:all:
+scipy --only-binary=:all:
+openquake.engine==3.17.1
 alembic
-
-openquake.hazardlib==3.17.1
 
 python-jose[cryptography]
 passlib[bcrypt]
