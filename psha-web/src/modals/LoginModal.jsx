@@ -1,33 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { FcGoogle } from "react-icons/fc"; // ikon Google
+import { FcGoogle } from "react-icons/fc";
 
 export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // -----------------------------
+  // Manual login
+  // -----------------------------
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(
+      // Login manual, backend set httpOnly cookie
+      await axios.post(
         `${apiUrl}/auth/login`,
         `username=${username}&password=${password}`,
-        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          withCredentials: true,
+        }
       );
 
-      const token = res.data.access_token;
-      const userData = {
-        username,
-        avatar: res.data.avatar || "",
-        token,
-      };
-
-      localStorage.setItem("access_token", token);
-      localStorage.setItem("username", username);
-      localStorage.setItem("avatar", userData.avatar);
-
-      onLogin(userData);
+      // Ambil user profile dari cookie
+      const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
+      onLogin({ username: res.data.email, avatar: "" });
       onClose();
     } catch (err) {
       alert("Login gagal");
@@ -36,6 +34,24 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
       setLoading(false);
     }
   };
+
+  // -----------------------------
+  // Auto-check Google OAuth login
+  // -----------------------------
+  useEffect(() => {
+    const checkGoogleLogin = async () => {
+      try {
+        const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
+        if (res.data.email) {
+          onLogin({ username: res.data.email, avatar: "" });
+          onClose();
+        }
+      } catch (err) {
+        // Belum login via Google
+      }
+    };
+    checkGoogleLogin();
+  }, [apiUrl, onLogin, onClose]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -70,6 +86,7 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
             {loading ? "Logging in..." : "Login"}
           </button>
 
+          {/* Google OAuth */}
           <a
             href={`${apiUrl}/auth/google`}
             className={`flex items-center justify-center w-full border rounded px-3 py-2 transition-colors ${

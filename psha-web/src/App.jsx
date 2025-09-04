@@ -44,22 +44,19 @@ export default function App() {
 
   /** ================== LOGIN / USER ================== */
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = localStorage.getItem("access_token");
-    const username = localStorage.getItem("username");
-    const avatar = urlParams.get("avatar");
-
-    if (token && username) {
-      const userData = { username, token, avatar };
-      localStorage.setItem("access_token", token);
-      localStorage.setItem("username", username);
-      localStorage.setItem("avatar", avatar || "");
-      setUser(userData);
-
-      // hapus query params biar URL bersih
-      window.history.replaceState({}, document.title, window.location.pathname);
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
+      if (res.data.email) {
+        setUser({ username: res.data.email, avatar: "" });
+      }
+    } catch (err) {
+      console.log("User not logged in yet");
     }
-  }, []);
+  };
+  fetchUser();
+}, []);
+
   
 
   /** ================== FETCH DATA ================== */
