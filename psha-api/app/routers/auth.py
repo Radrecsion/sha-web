@@ -73,7 +73,7 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         )
 
         # Redirect ke front-end
-        front_url = "https://sha-web-production.up.railway.app/login-success"
+        front_url = "https://radrecsion.github.io/sha-web/"
         response = RedirectResponse(url=front_url)
 
         # Set cookie httpOnly

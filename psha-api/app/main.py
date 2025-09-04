@@ -44,10 +44,14 @@ app.add_middleware(
 
 
 # Supaya React bisa akses API tanpa error CORS
+origins = [
+    "https://radrecsion.github.io",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # untuk dev, bisa diganti ["http://localhost:5173"]
-    allow_credentials=True,
+    allow_origins=origins,           # <=== gunakan origin spesifik
+    allow_credentials=True,           # <=== harus True untuk cookie
     allow_methods=["*"],
     allow_headers=["*"],
 )
