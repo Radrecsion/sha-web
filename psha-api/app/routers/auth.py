@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
@@ -17,6 +19,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # ---------------------------
 # OAUTH GOOGLE
 # ---------------------------
+# Pastikan logging aktif
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 oauth = OAuth()
 oauth.register(
     name="google",
@@ -29,32 +35,44 @@ oauth.register(
 @router.get("/google")
 async def login_via_google(request: Request):
     """Redirect ke Google untuk login"""
-    redirect_uri = settings.GOOGLE_REDIRECT_URI
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    try:
+        redirect_uri = settings.GOOGLE_REDIRECT_URI
+        logger.info(f"[GOOGLE LOGIN] Redirect URI: {redirect_uri}")
+        logger.info(f"[GOOGLE LOGIN] Client ID: {settings.GOOGLE_CLIENT_ID}")
+        return await oauth.google.authorize_redirect(request, redirect_uri)
+    except Exception as e:
+        logger.error(f"[GOOGLE LOGIN ERROR] {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Google OAuth redirect error: {e}")
 
 @router.get("/google/callback")
 async def auth_google_callback(request: Request):
     """Callback Google OAuth"""
-    token = await oauth.google.authorize_access_token(request)
-    user_info = token.get("userinfo")
+    try:
+        token = await oauth.google.authorize_access_token(request)
+        logger.info(f"[GOOGLE CALLBACK] Token received: {token}")
 
-    if not user_info:
-        raise HTTPException(status_code=400, detail="Google login failed")
+        user_info = token.get("userinfo")
+        if not user_info:
+            logger.warning("[GOOGLE CALLBACK] No userinfo in token")
+            raise HTTPException(status_code=400, detail="Google login failed")
 
-    db = SessionLocal()
-    user = db.query(User).filter(User.email == user_info["email"]).first()
-    if not user:
-        user = User(
-            username=user_info["email"].split("@")[0],
-            email=user_info["email"],
-            hashed_password="google_oauth",  # dummy (karena SSO)
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        db = SessionLocal()
+        user = db.query(User).filter(User.email == user_info["email"]).first()
+        if not user:
+            user = User(
+                username=user_info["email"].split("@")[0],
+                email=user_info["email"],
+                hashed_password="google_oauth",
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
-    jwt_token = create_access_token({"sub": str(user.id)})
-    return {"access_token": jwt_token, "token_type": "bearer"}
+        jwt_token = create_access_token({"sub": str(user.id)})
+        return {"access_token": jwt_token, "token_type": "bearer"}
+    except Exception as e:
+        logger.error(f"[GOOGLE CALLBACK ERROR] {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Google OAuth callback error: {e}")
 
 # ---------------------------
 # REGISTER MANUAL
