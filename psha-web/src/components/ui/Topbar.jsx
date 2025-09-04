@@ -4,7 +4,6 @@ import LoginModal from "../../modals/LoginModal";
 import ProfileModal from "../../modals/ProfileModal";
 
 export default function Topbar({
-  onSave,
   onNewProject,
   onMenuToggle,
   apiUrl,

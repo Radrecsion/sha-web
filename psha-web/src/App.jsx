@@ -15,7 +15,6 @@ import LoginModal from "./modals/LoginModal";
 import { saveProject } from "./services/projectService";
 import axios from "axios";
 
-// Ambil API_URL dari runtime config
 export const API_URL =
   window.RUNTIME_CONFIG?.API_URL || "https://sha-api-production.up.railway.app/api/v1";
 
@@ -62,8 +61,7 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("login") === "success") {
-      axios
-        .get(`${API_URL}/auth/me`, { withCredentials: true })
+      axios.get(`${API_URL}/auth/me`, { withCredentials: true })
         .then((res) => {
           if (res.data.email) {
             const userData = { username: res.data.email, avatar: "" };
@@ -72,6 +70,10 @@ export default function App() {
             localStorage.setItem("avatar", userData.avatar || "");
             setToast({ type: "success", message: "Login successful!" });
             setTimeout(() => setToast(null), 3000);
+
+            // Hapus query string supaya efek tidak berulang
+            const newUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
           }
         })
         .catch(console.error);
@@ -170,12 +172,10 @@ export default function App() {
   /** ================== RENDER ================== */
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      {/* Topbar */}
       <Topbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onNewProject={handleNewProject}
-        onHelp={() => setIsHelpOpen(true)}
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         apiUrl={API_URL}
         user={user}
@@ -183,7 +183,6 @@ export default function App() {
       />
 
       <div className="flex flex-1 pt-14">
-        {/* Sidebar */}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -192,7 +191,6 @@ export default function App() {
           setCurrentProject={setCurrentProject}
         />
 
-        {/* Main Content */}
         <main className="flex-1 p-6 overflow-y-auto">
           <Toast toast={toast} />
 
@@ -221,7 +219,6 @@ export default function App() {
         </main>
       </div>
 
-      {/* Modals */}
       <SaveProjectModal
         isOpen={isSaveOpen}
         onClose={() => setIsSaveOpen(false)}
@@ -229,7 +226,6 @@ export default function App() {
       />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
-      {/* Login modal */}
       {showLoginModal && (
         <LoginModal
           apiUrl={API_URL}
