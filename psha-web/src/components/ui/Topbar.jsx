@@ -5,6 +5,7 @@ import ProfileModal from "../../modals/ProfileModal";
 
 export default function Topbar({
   onNewProject,
+  onHelp,
   onMenuToggle,
   apiUrl,
   user: userProp,
@@ -16,22 +17,25 @@ export default function Topbar({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Theme dari localStorage
+  /** ================== THEME ================== */
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    setDarkMode(savedTheme === "dark");
-    document.documentElement.setAttribute("data-theme", savedTheme || "light");
+    const theme = savedTheme || "light";
+    setDarkMode(theme === "dark");
+    document.documentElement.setAttribute("data-theme", theme);
   }, []);
 
-  // Ambil user dari props atau localStorage
+  /** ================== SYNC USER FROM PROPS ================== */
   useEffect(() => {
     if (userProp) {
       setUser(userProp);
     } else {
-      const token = localStorage.getItem("access_token");
       const username = localStorage.getItem("username");
       const avatar = localStorage.getItem("avatar");
-      if (token && username) setUser({ username, token, avatar });
+      const token = localStorage.getItem("access_token");
+      if (username && token) {
+        setUser({ username, avatar, token });
+      }
     }
   }, [userProp]);
 
@@ -42,6 +46,7 @@ export default function Topbar({
     localStorage.setItem("theme", newTheme);
   };
 
+  /** ================== LOGOUT ================== */
   const handleLogout = () => {
     localStorage.removeItem("username");
     localStorage.removeItem("avatar");
@@ -51,6 +56,7 @@ export default function Topbar({
     if (onUserUpdate) onUserUpdate(null);
   };
 
+  /** ================== BUTTON HELPER ================== */
   const renderButton = (label, onClick, colorClass) => (
     <button
       onClick={onClick}
@@ -63,6 +69,7 @@ export default function Topbar({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[var(--card)] text-[var(--text)] shadow">
       <div className="px-4 py-3 flex justify-between items-center">
+        {/* Left */}
         <div className="flex items-center space-x-4">
           <button
             onClick={onMenuToggle}
@@ -73,11 +80,13 @@ export default function Topbar({
           <span className="text-xl font-bold">SHA-Web</span>
         </div>
 
+        {/* Right */}
         <div className="flex items-center space-x-4">
           {user ? (
             <>
               {renderButton("New Project", onNewProject, "bg-green-500 text-white")}
 
+              {/* User Dropdown */}
               <div className="relative">
                 <div
                   className="flex items-center space-x-2 cursor-pointer"
