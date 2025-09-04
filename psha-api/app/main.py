@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 import numpy as np
 import time
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from app.routers import gmpe, datasource, analysis, hazard, mechanism, meta, auth, projects
 from app.database import Base
+from app.core.config import settings
+
+
 
 # ======= Setup DB dengan retry =======
 DATABASE_URL = "postgresql+psycopg2://postgres:PIjMWkSHXZzFGcwprGpoUUcmdKRXKQwA@shortline.proxy.rlwy.net:48540/railway"
