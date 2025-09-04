@@ -5,8 +5,8 @@ export default function Sidebar({ isOpen, setIsOpen, activeTab, setActiveTab }) 
 
   const menu = [
     { key: "analysis", label: "PSHA" },
-    { key: "datasource", label: "List Sumber Gempa" },
-    { key: "gmpe", label: "List Atenuasi" },
+    { key: "datasource", label: "Datasource" },
+    { key: "gmpe", label: "Attenuation" },
   ];
 
   // handle animasi keluar sebelum unmount

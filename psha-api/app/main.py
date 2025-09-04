@@ -4,7 +4,7 @@ import numpy as np
 import time
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
-from app.routers import gmpe, datasource, analysis, hazard, mechanism, meta
+from app.routers import gmpe, datasource, analysis, hazard, mechanism, meta, auth, projects
 from app.database import Base
 
 # ======= Setup DB dengan retry =======
@@ -47,6 +47,10 @@ app.include_router(analysis.router, prefix="/api/v1", tags=["analysis"])
 app.include_router(hazard.router, prefix="/api/v1", tags=["hazard"])
 app.include_router(mechanism.router, prefix="/api/v1", tags=["mechanism"])
 app.include_router(meta.router, prefix="/api/v1", tags=["meta"])
+
+# sistem login + project (router baru)
+app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
+app.include_router(projects.router, prefix="/api/v1", tags=["projects"])
 
 @app.get("/")
 def read_root():

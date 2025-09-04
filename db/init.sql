@@ -1,6 +1,31 @@
 -- ============================================================
--- DATABASE INIT SCRIPT UNTUK GMPE / ATTENUATION MODELS
+-- DATABASE INIT SCRIPT UNTUK GMPE / ATTENUATION MODELS + AUTH/PROJECT
 -- ============================================================
+
+-- =========================
+-- AUTH TABLES
+-- =========================
+
+-- Tabel users
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel projects
+CREATE TABLE IF NOT EXISTS projects (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    data JSON,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================
+-- GMPE TABLES
+-- =========================
 
 -- Buat schema dasar
 CREATE TABLE IF NOT EXISTS gmpe_models (

@@ -1,3 +1,11 @@
+# app/models/base.py
 from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, DateTime, func
 
+# Base class utama untuk semua model
 Base = declarative_base()
+
+# Optional: Mixin untuk timestamp
+class TimestampMixin:
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

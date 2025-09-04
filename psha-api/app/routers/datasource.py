@@ -13,6 +13,7 @@ def get_db():
     finally:
         db.close()
 
+
 # CREATE
 @router.post("/", response_model=DataSourceOut)
 def create_datasource(ds: DataSourceCreate, db: Session = Depends(get_db)):
@@ -23,6 +24,11 @@ def create_datasource(ds: DataSourceCreate, db: Session = Depends(get_db)):
         max_mag=ds.max_mag,
         coords_up=[p.dict() for p in ds.coords_up],
         coords_down=[p.dict() for p in ds.coords_down],
+        gr_beta=ds.gr_beta,
+        gr_rate=ds.gr_rate,
+        gr_weight=ds.gr_weight,
+        dip_angle=ds.dip_angle,
+        strike_angle=ds.strike_angle,
     )
     db.add(new_ds)
     db.commit()
@@ -31,14 +37,15 @@ def create_datasource(ds: DataSourceCreate, db: Session = Depends(get_db)):
     for w in ds.gmpe_weights:
         gmpe_assoc = models.DataSourceGMPE(
             datasource_id=new_ds.id,
-            gmpe_name=w.gmpe_name,
-            weight=w.weight
+            gmpe_name=w.gmpe_name,  # pakai nama, bukan id
+            weight=w.weight,
         )
         db.add(gmpe_assoc)
 
     db.commit()
     db.refresh(new_ds)
     return new_ds
+
 
 # READ ALL
 @router.get("/", response_model=list[DataSourceOut])
@@ -54,6 +61,7 @@ def get_datasource(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Datasource not found")
     return ds
 
+
 # UPDATE
 @router.put("/{id}", response_model=DataSourceOut)
 def update_datasource(id: int, ds: DataSourceCreate, db: Session = Depends(get_db)):
@@ -67,6 +75,11 @@ def update_datasource(id: int, ds: DataSourceCreate, db: Session = Depends(get_d
     datasource.max_mag = ds.max_mag
     datasource.coords_up = [p.dict() for p in ds.coords_up]
     datasource.coords_down = [p.dict() for p in ds.coords_down]
+    datasource.gr_beta = ds.gr_beta
+    datasource.gr_rate = ds.gr_rate
+    datasource.gr_weight = ds.gr_weight
+    datasource.dip_angle = ds.dip_angle
+    datasource.strike_angle = ds.strike_angle
 
     # replace gmpe_weights
     db.query(models.DataSourceGMPE).filter(
@@ -76,7 +89,7 @@ def update_datasource(id: int, ds: DataSourceCreate, db: Session = Depends(get_d
     for w in ds.gmpe_weights:
         gmpe_assoc = models.DataSourceGMPE(
             datasource_id=id,
-            gmpe_id=w.gmpe_id,
+            gmpe_name=w.gmpe_name,
             weight=w.weight,
         )
         db.add(gmpe_assoc)
@@ -84,6 +97,7 @@ def update_datasource(id: int, ds: DataSourceCreate, db: Session = Depends(get_d
     db.commit()
     db.refresh(datasource)
     return datasource
+
 
 # DELETE
 @router.delete("/{id}", response_model=dict)

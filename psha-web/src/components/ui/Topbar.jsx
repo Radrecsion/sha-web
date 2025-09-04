@@ -12,8 +12,8 @@ export default function Topbar({
 
   const menu = [
     { key: "analysis", label: "PSHA" },
-    { key: "datasource", label: "List Sumber Gempa" },
-    { key: "gmpe", label: "List Atenuasi" },
+    { key: "datasource", label: "Datasource" },
+    { key: "gmpe", label: "Attenuation" },
   ];
 
   // cek preferensi awal theme
