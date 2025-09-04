@@ -19,7 +19,6 @@ import axios from "axios";
 export const API_URL =
   window.RUNTIME_CONFIG?.API_URL || "https://sha-api-production.up.railway.app/api/v1";
 
-
 export default function App() {
   const [activeTab, setActiveTab] = useState("analysis");
   const [result, setResult] = useState(null);
@@ -39,28 +38,28 @@ export default function App() {
 
   const [currentProject, setCurrentProject] = useState(null);
   const [user, setUser] = useState(null);
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  /** ================== LOGIN / USER ================== */
+  /** ================== AUTO-CHECK LOGIN ================== */
   useEffect(() => {
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
-      if (res.data.email) {
-        setUser({ username: res.data.email, avatar: "" });
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
+        if (res.data.email) {
+          const userData = { username: res.data.email, avatar: "" };
+          setUser(userData);
+          localStorage.setItem("username", userData.username);
+          localStorage.setItem("avatar", userData.avatar || "");
+        }
+      } catch (err) {
+        console.log("User not logged in yet");
       }
-    } catch (err) {
-      console.log("User not logged in yet");
-    }
-  };
-  fetchUser();
-}, []);
-
-  
+    };
+    fetchUser();
+  }, []);
 
   /** ================== FETCH DATA ================== */
-  async function fetchDatasources() {
+  const fetchDatasources = async () => {
     try {
       const res = await fetch(`${API_URL}/datasource/`);
       if (!res.ok) throw new Error(`Fetch datasource status: ${res.status}`);
@@ -72,9 +71,9 @@ export default function App() {
       console.error("Gagal fetch datasources:", err);
       setDatasources([]);
     }
-  }
+  };
 
-  async function fetchGmpes() {
+  const fetchGmpes = async () => {
     try {
       const res = await fetch(`${API_URL}/gmpe/`);
       if (!res.ok) throw new Error(`Fetch gmpe status: ${res.status}`);
@@ -86,7 +85,7 @@ export default function App() {
       console.error("Gagal fetch gmpe:", err);
       setGmpeList([]);
     }
-  }
+  };
 
   useEffect(() => {
     fetchDatasources();
@@ -94,7 +93,7 @@ export default function App() {
   }, []);
 
   /** ================== HANDLERS ================== */
-  function handleRun({ result, siteData, selectedSources, selectedGmpes, error }) {
+  const handleRun = ({ result, siteData, selectedSources, selectedGmpes, error }) => {
     if (error) {
       setError(error);
       setToast({ type: "error", message: error });
@@ -104,9 +103,9 @@ export default function App() {
       setToast({ type: "success", message: "Analysis completed successfully!" });
     }
     setTimeout(() => setToast(null), 4000);
-  }
+  };
 
-  function handleSaveProject(name) {
+  const handleSaveProject = (name) => {
     if (!user) {
       setToast({ type: "error", message: "Login dulu sebelum menyimpan project!" });
       setTimeout(() => setToast(null), 3000);
@@ -131,9 +130,9 @@ export default function App() {
         setToast({ type: "error", message: "Gagal menyimpan project" });
         setTimeout(() => setToast(null), 3000);
       });
-  }
+  };
 
-  function handleLoadProject(project) {
+  const handleLoadProject = (project) => {
     setSiteData(project.site || {});
     setDatasources(project.datasources || []);
     setSelectedSources(project.selectedSources || []);
@@ -143,28 +142,28 @@ export default function App() {
     setActiveTab("analysis");
     setToast({ type: "info", message: `Project "${project.name}" loaded!` });
     setTimeout(() => setToast(null), 3000);
-  }
+  };
 
   /** ================== EFFECT LOAD PROJECT ================== */
   useEffect(() => {
-    if (currentProject) {
-      handleLoadProject(currentProject);
-    }
+    if (currentProject) handleLoadProject(currentProject);
   }, [currentProject]);
 
   /** ================== RENDER ================== */
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--text)]">
       {/* Topbar */}
-    <Topbar
-      onSave={() => setIsSaveOpen(true)}
-      onLoad={() => setIsLoadOpen(true)}
-      onHelp={() => setIsHelpOpen(true)}
-      setActiveTab={setActiveTab}
-      user={user}
-      apiUrl={API_URL}
-      onUserUpdate={setUser}
-    />
+      <Topbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onSave={() => setIsSaveOpen(true)}
+        onLoad={() => setIsLoadOpen(true)}
+        onHelp={() => setIsHelpOpen(true)}
+        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+        apiUrl={API_URL}
+        user={user}
+        onUserUpdate={setUser}
+      />
 
       <div className="flex flex-1 pt-14">
         {/* Sidebar */}
@@ -206,8 +205,16 @@ export default function App() {
       </div>
 
       {/* Modals */}
-      <SaveProjectModal isOpen={isSaveOpen} onClose={() => setIsSaveOpen(false)} onSave={handleSaveProject} />
-      <LoadProjectModal isOpen={isLoadOpen} onClose={() => setIsLoadOpen(false)} onLoad={handleLoadProject} />
+      <SaveProjectModal
+        isOpen={isSaveOpen}
+        onClose={() => setIsSaveOpen(false)}
+        onSave={handleSaveProject}
+      />
+      <LoadProjectModal
+        isOpen={isLoadOpen}
+        onClose={() => setIsLoadOpen(false)}
+        onLoad={handleLoadProject}
+      />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </div>
   );

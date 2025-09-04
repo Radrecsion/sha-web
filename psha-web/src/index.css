@@ -252,3 +252,86 @@ button.theme-toggle:hover {
 }
 
 .gmpe-item input:hover { background-color: var(--hover); }
+
+
+/* ===== Animations ===== */
+
+/* ----- Fade In / Fade Out ----- */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.3s ease-in forwards;
+}
+
+/* ----- Slide + Fade ----- */
+@keyframes slide-fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+.animate-slide-fade-in {
+  animation: slide-fade-in 0.4s ease-out forwards;
+}
+
+.animate-slide-fade-out {
+  animation: slide-fade-out 0.4s ease-in forwards;
+}
+
+/* ===== Toast ===== */
+.toast {
+  @apply fixed top-4 right-4 px-4 py-2 rounded shadow-lg z-50 text-white font-medium;
+  opacity: 0; /* mulai hidden, akan fade-in */
+}
+
+.toast-success {
+  @apply bg-green-500;
+  animation: slide-fade-in 0.5s ease-out forwards;
+}
+
+.toast-error {
+  @apply bg-red-500;
+  animation: slide-fade-in 0.5s ease-out forwards;
+}
+
+.toast-info {
+  @apply bg-blue-500;
+  animation: slide-fade-in 0.5s ease-out forwards;
+}
+
+/* ===== Modal Background Overlay ===== */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-40 opacity-0;
+  animation: fade-in 0.3s forwards;
+}
+
+.modal-overlay-close {
+  animation: fade-out 0.3s forwards;
+}
+
+/* ===== Modal Content ===== */
+.modal-content {
+  @apply fixed z-50 bg-[var(--card)] rounded-lg shadow-lg p-6 max-w-lg w-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0;
+  animation: slide-fade-in 0.4s ease-out forwards;
+}
+
+.modal-content-close {
+  animation: slide-fade-out 0.4s ease-in forwards;
+}
+

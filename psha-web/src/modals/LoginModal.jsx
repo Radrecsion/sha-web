@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 
@@ -6,14 +6,16 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [closing, setClosing] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  // -----------------------------
-  // Manual login
-  // -----------------------------
+  /** Manual login */
   const handleLogin = async () => {
     setLoading(true);
+    setErrorMsg("");
     try {
-      // Login manual, backend set httpOnly cookie
       await axios.post(
         `${apiUrl}/auth/login`,
         `username=${username}&password=${password}`,
@@ -23,50 +25,61 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
         }
       );
 
-      // Ambil user profile dari cookie
       const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
-      onLogin({ username: res.data.email, avatar: "" });
-      onClose();
+      if (res.data.email) {
+        const userData = { username: res.data.email, avatar: "" };
+        onLogin(userData);
+        setSuccess(true);
+        setToast({ type: "success", message: "Login berhasil!" });
+
+        setTimeout(() => {
+          setClosing(true);
+          setTimeout(onClose, 400); // tunggu animasi selesai
+        }, 2000);
+      }
     } catch (err) {
-      alert("Login gagal");
       console.error(err);
+      setErrorMsg("Login gagal, periksa username/password");
+      setToast({ type: "error", message: "Login gagal!" });
     } finally {
       setLoading(false);
     }
   };
 
-  // -----------------------------
-  // Auto-check Google OAuth login
-  // -----------------------------
-  useEffect(() => {
-    const checkGoogleLogin = async () => {
-      try {
-        const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
-        if (res.data.email) {
-          onLogin({ username: res.data.email, avatar: "" });
-          onClose();
-        }
-      } catch (err) {
-        // Belum login via Google
-      }
-    };
-    checkGoogleLogin();
-  }, [apiUrl, onLogin, onClose]);
+  /** Google OAuth login */
+  const handleGoogleLogin = () => {
+    window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(
+      window.location.origin
+    )}`;
+  };
+
+  /** Handle close dengan animasi */
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(onClose, 400);
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <>
+      {/* Overlay */}
       <div
-        className="p-6 rounded-lg shadow-md w-80 card-custom"
+        className={`modal-overlay ${closing ? "modal-overlay-close" : ""}`}
+        onClick={handleClose}
+      />
+
+      {/* Content */}
+      <div
+        className={`modal-content ${closing ? "modal-content-close" : ""}`}
         style={{ backgroundColor: "var(--card)", color: "var(--text)" }}
       >
         <h2 className="text-lg font-bold mb-4">Login</h2>
 
-        {/* Username / Password */}
         <input
           className="w-full mb-2 p-2 border rounded"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          disabled={loading || success}
         />
         <input
           type="password"
@@ -74,40 +87,57 @@ export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          disabled={loading || success}
         />
 
-        {/* Buttons */}
+        {errorMsg && <p className="text-red-500 text-sm mb-2">{errorMsg}</p>}
+
         <div className="flex flex-col space-y-2">
           <button
             onClick={handleLogin}
             className="w-full px-4 py-2 bg-blue-500 text-white rounded flex justify-center items-center"
-            disabled={loading}
+            disabled={loading || success}
           >
             {loading ? "Logging in..." : "Login"}
           </button>
 
-          {/* Google OAuth */}
-          <a
-            href={`${apiUrl}/auth/google`}
+          <button
+            onClick={handleGoogleLogin}
             className={`flex items-center justify-center w-full border rounded px-3 py-2 transition-colors ${
               theme === "dark"
                 ? "bg-gray-800 text-white hover:bg-gray-700"
                 : "bg-white text-black hover:bg-gray-100"
             }`}
+            disabled={loading || success}
           >
             <FcGoogle className="w-5 h-5 mr-2" />
             Login with Google
-          </a>
+          </button>
 
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="w-full px-4 py-2 border rounded"
-            disabled={loading}
+            disabled={loading || success}
           >
             Cancel
           </button>
         </div>
       </div>
-    </div>
+
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`toast ${
+            toast.type === "success"
+              ? "toast-success"
+              : toast.type === "error"
+              ? "toast-error"
+              : "toast-info"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
+    </>
   );
 }

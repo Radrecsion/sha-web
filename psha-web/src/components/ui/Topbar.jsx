@@ -11,6 +11,8 @@ export default function Topbar({
   onHelp,
   onMenuToggle,
   apiUrl,
+  user: userProp,         // menerima user dari App
+  onUserUpdate,           // callback untuk update user state di App
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -25,17 +27,24 @@ export default function Topbar({
     { key: "gmpe", label: "Attenuation" },
   ];
 
-  // Ambil theme + user dari localStorage
+  // Ambil theme dari localStorage & set state
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     setDarkMode(savedTheme === "dark");
     document.documentElement.setAttribute("data-theme", savedTheme || "light");
-
-    const token = localStorage.getItem("access_token");
-    const username = localStorage.getItem("username");
-    const avatar = localStorage.getItem("avatar");
-    if (token && username) setUser({ username, token, avatar });
   }, []);
+
+  // Ambil user dari props atau localStorage
+  useEffect(() => {
+    if (userProp) {
+      setUser(userProp);
+    } else {
+      const token = localStorage.getItem("access_token");
+      const username = localStorage.getItem("username");
+      const avatar = localStorage.getItem("avatar");
+      if (token && username) setUser({ username, token, avatar });
+    }
+  }, [userProp]);
 
   const toggleTheme = () => {
     const newTheme = darkMode ? "light" : "dark";
@@ -50,6 +59,7 @@ export default function Topbar({
     localStorage.removeItem("access_token");
     setUser(null);
     setIsDropdownOpen(false);
+    if (onUserUpdate) onUserUpdate(null);
   };
 
   const renderButton = (label, onClick, colorClass) => (
@@ -168,7 +178,14 @@ export default function Topbar({
         <LoginModal
           apiUrl={apiUrl}
           onClose={() => setShowLoginModal(false)}
-          onLogin={(userData) => setUser(userData)}
+          onLogin={(userData) => {
+            setUser(userData);
+            localStorage.setItem("access_token", userData.token || "");
+            localStorage.setItem("username", userData.username);
+            localStorage.setItem("avatar", userData.avatar || "");
+            if (onUserUpdate) onUserUpdate(userData);
+            setShowLoginModal(false);
+          }}
         />
       )}
 
@@ -176,7 +193,10 @@ export default function Topbar({
         <ProfileModal
           user={user}
           onClose={() => setShowProfileModal(false)}
-          onUpdate={(updatedUser) => setUser(updatedUser)}
+          onUpdate={(updatedUser) => {
+            setUser(updatedUser);
+            if (onUserUpdate) onUserUpdate(updatedUser);
+          }}
         />
       )}
     </header>
