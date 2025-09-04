@@ -13,22 +13,11 @@ export default function Topbar({
   user: userProp,
   onUserUpdate,
 }) {
-  const [user, setUser] = useState(null);
+
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-
-  /** ================== SYNC USER ================== */
-  useEffect(() => {
-    if (userProp) setUser(userProp);
-    else {
-      const username = localStorage.getItem("username");
-      const avatar = localStorage.getItem("avatar");
-      const token = localStorage.getItem("access_token");
-      if (username && token) setUser({ username, avatar, token });
-    }
-  }, [userProp]);
 
   const handleLogout = () => {
     localStorage.removeItem("username");
