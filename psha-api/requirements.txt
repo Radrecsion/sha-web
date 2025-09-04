@@ -14,5 +14,6 @@ alembic
 # Auth & Security
 python-jose[cryptography]
 passlib[bcrypt]
+httpx
 authlib
 python-dotenv
