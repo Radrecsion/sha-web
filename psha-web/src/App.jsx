@@ -41,20 +41,20 @@ export default function App() {
 
   /** ================== CHECK LOGIN ================== */
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
-        if (res.data.email) {
-          const userData = { username: res.data.email, avatar: "" };
-          setUser(userData);
-          localStorage.setItem("username", userData.username);
-          localStorage.setItem("avatar", userData.avatar || "");
-        }
-      } catch {
-        console.log("User not logged in yet");
-      }
-    };
-    checkUser();
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      axios.get(`${API_URL}/auth/me`, { withCredentials: true })
+        .then(res => {
+          if (res.data.email) {
+            setUser({
+              username: res.data.email,
+              avatar: res.data.avatar || "",
+              token,
+            });
+          }
+        })
+        .catch(() => console.log("User not logged in yet"));
+    }
   }, []);
 
   /** ================== HANDLE LOGIN CALLBACK ================== */
@@ -62,16 +62,20 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("login") === "success") {
       axios.get(`${API_URL}/auth/me`, { withCredentials: true })
-        .then((res) => {
+        .then(res => {
           if (res.data.email) {
-            const userData = { username: res.data.email, avatar: "" };
+            const userData = {
+              username: res.data.email,
+              avatar: res.data.avatar || "",
+              token: localStorage.getItem("access_token") || "",
+            };
             setUser(userData);
             localStorage.setItem("username", userData.username);
             localStorage.setItem("avatar", userData.avatar || "");
             setToast({ type: "success", message: "Login successful!" });
             setTimeout(() => setToast(null), 3000);
 
-            // Hapus query string supaya efek tidak berulang
+            // Hapus query string
             const newUrl = window.location.origin + window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
           }
@@ -178,8 +182,8 @@ export default function App() {
         onNewProject={handleNewProject}
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         apiUrl={API_URL}
-        user={user}
-        onUserUpdate={setUser}
+        user={user}               // <-- Topbar sekarang mengikuti user state App
+        onUserUpdate={setUser}    // <-- Topbar bisa update App state juga
       />
 
       <div className="flex flex-1 pt-14">
