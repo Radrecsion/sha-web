@@ -1,3 +1,6 @@
+--no-cache-dir
+--only-binary=:all:
+
 fastapi
 uvicorn[standard]
 gunicorn
@@ -5,12 +8,11 @@ pydantic
 pydantic-settings
 sqlalchemy
 psycopg2-binary
-numpy<2.0 --only-binary=:all:
-pandas --only-binary=:all:
-scipy --only-binary=:all:
+numpy<2.0
+pandas
+scipy
 openquake.engine==3.17.1
 alembic
-
 python-jose[cryptography]
 passlib[bcrypt]
 httpx
