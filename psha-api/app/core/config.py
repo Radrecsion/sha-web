@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 
+    # OAuth Google
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_REDIRECT_URI: Optional[str] = None
+
     class Config:
         env_file = None  # disable karena sudah load manual
         env_file_encoding = "utf-8"
