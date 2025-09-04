@@ -179,11 +179,12 @@ export default function App() {
       <Topbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onNewProject={handleNewProject}
-        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+        onNewProject={() => console.log("New project")} // opsional
+        onMenuToggle={() => setSidebarOpen(v => !v)}
+        theme={theme}
+        user={user}
         apiUrl={API_URL}
-        user={user}               // <-- Topbar sekarang mengikuti user state App
-        onUserUpdate={setUser}    // <-- Topbar bisa update App state juga
+        onUserUpdate={setUser} // <- ini penting untuk update user setelah login/logout
       />
 
       <div className="flex flex-1 pt-14">

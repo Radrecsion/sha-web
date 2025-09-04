@@ -56,19 +56,17 @@ export default function Layout({ children }) {
       {/* Main Wrapper */}
       <div className="flex-1 flex flex-col">
         {/* Topbar */}
-        <Topbar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onSave={() => alert("Save clicked")}
-          onLoad={(src) => alert("Load from " + src)}
-          onHelp={() => alert("Help clicked")}
-          onMenuToggle={() => setSidebarOpen((v) => !v)}
-          onThemeToggle={toggleTheme}
-          theme={theme}
-          user={user}
-          apiUrl={API_URL} // untuk login Google
-          onUserUpdate={setUser} // untuk update user setelah login/logout
-        />
+      <Topbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onNewProject={() => console.log("New project")} // opsional
+        onMenuToggle={() => setSidebarOpen(v => !v)}
+        theme={theme}
+        user={user}
+        apiUrl={API_URL}
+        onUserUpdate={setUser} // <- ini penting untuk update user setelah login/logout
+      />
+
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6 pt-14 md:ml-64 transition-colors duration-300">
