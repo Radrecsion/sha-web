@@ -16,7 +16,9 @@ import { saveProject } from "./services/projectService";
 import axios from "axios";
 
 // Ambil API_URL dari runtime config
-export const API_URL = window.RUNTIME_CONFIG?.API_URL || "http://localhost:8000/api/v1";
+export const API_URL =
+  window.RUNTIME_CONFIG?.API_URL || "https://sha-api-production.up.railway.app/api/v1";
+
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("analysis");

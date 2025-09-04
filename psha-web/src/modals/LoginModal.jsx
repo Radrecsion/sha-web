@@ -1,8 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
-import { FcGoogle } from "react-icons/fc"; // import ikon Google
+import { FcGoogle } from "react-icons/fc"; // ikon Google
 
-export default function LoginModal({ onClose, onLogin, apiUrl }) {
+export default function LoginModal({ onClose, onLogin, apiUrl, theme }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,13 +37,12 @@ export default function LoginModal({ onClose, onLogin, apiUrl }) {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.open(`${apiUrl}/auth/google`, "_blank", "width=500,height=600");
-  };
-
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-[var(--card)] p-6 rounded-lg shadow-md w-80">
+      <div
+        className="p-6 rounded-lg shadow-md w-80 card-custom"
+        style={{ backgroundColor: "var(--card)", color: "var(--text)" }}
+      >
         <h2 className="text-lg font-bold mb-4">Login</h2>
 
         {/* Username / Password */}
@@ -73,11 +72,15 @@ export default function LoginModal({ onClose, onLogin, apiUrl }) {
 
           <a
             href={`${apiUrl}/auth/google`}
-            className="flex items-center justify-center w-full border rounded px-3 py-2 bg-white hover:bg-gray-100"
-            >
-            <img src="/google-logo.svg" alt="Google" className="w-5 h-5 mr-2" />
+            className={`flex items-center justify-center w-full border rounded px-3 py-2 transition-colors ${
+              theme === "dark"
+                ? "bg-gray-800 text-white hover:bg-gray-700"
+                : "bg-white text-black hover:bg-gray-100"
+            }`}
+          >
+            <FcGoogle className="w-5 h-5 mr-2" />
             Login with Google
-        </a>
+          </a>
 
           <button
             onClick={onClose}
