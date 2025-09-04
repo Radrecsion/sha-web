@@ -27,7 +27,10 @@ class DataSource(Base):
     dip_angle = Column(Float, nullable=True)
     strike_angle = Column(Float, nullable=True)
 
-    # relasi GMPE weights
+    # === RELASI ===
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project", back_populates="datasources")
+
     gmpe_weights = relationship("DataSourceGMPE", back_populates="datasource", cascade="all, delete-orphan")
 
 
