@@ -35,7 +35,7 @@ export default function GmpePage() {
     return <div className="p-4 opacity-70">Tidak ada GMPE tersedia</div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       <h2 className="text-xl font-bold">Daftar GMPE</h2>
 
       {gmpeList.map((gmpe) => {

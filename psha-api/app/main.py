@@ -5,19 +5,18 @@ import numpy as np
 import time
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
+from urllib.parse import urlparse  # untuk ambil origin
 from app.routers import gmpe, datasource, analysis, hazard, mechanism, meta, auth, projects
 from app.database import Base
 from app.core.config import settings
 
-
 # ======= Setup DB dengan retry =======
-DATABASE_URL = "postgresql+psycopg2://postgres:PIjMWkSHXZzFGcwprGpoUUcmdKRXKQwA@shortline.proxy.rlwy.net:48540/railway"
+DATABASE_URL = settings.DATABASE_URL
 max_retries = 10
 
 for i in range(max_retries):
     try:
         engine = create_engine(DATABASE_URL)
-        # coba connect
         conn = engine.connect()
         conn.close()
         print("✅ Database connected")
@@ -34,37 +33,37 @@ Base.metadata.create_all(bind=engine)
 # ======= FastAPI app =======
 app = FastAPI(title="PSHA API", version="1.0.0")
 
-# ----- Session Middleware harus ditambahkan SEBELUM router -----
+# ----- Session Middleware -----
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SECRET_KEY,
-    same_site="lax",     # supaya cookie diterima cross-site
-    https_only=True      # karena deploy pakai HTTPS
+    same_site="lax",
+    https_only=True
 )
 
+# ======= CORS Setup =======
+# Pastikan FRONTEND_URL tanpa path, hanya origin
+frontend_url = settings.FRONTEND_URL
+parsed = urlparse(frontend_url)
+frontend_origin = f"{parsed.scheme}://{parsed.netloc}"
 
-# Supaya React bisa akses API tanpa error CORS
-origins = [
-    "https://radrecsion.github.io",
-]
+print(f"🔗 FRONTEND_ORIGIN = {frontend_origin}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,           # <=== gunakan origin spesifik
-    allow_credentials=True,           # <=== harus True untuk cookie
+    allow_origins=[frontend_origin],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register routers
+# ======= Routers =======
 app.include_router(datasource.router, prefix="/api/v1", tags=["datasource"])
 app.include_router(gmpe.router, prefix="/api/v1", tags=["gmpe"])
 app.include_router(analysis.router, prefix="/api/v1", tags=["analysis"])
 app.include_router(hazard.router, prefix="/api/v1", tags=["hazard"])
 app.include_router(mechanism.router, prefix="/api/v1", tags=["mechanism"])
 app.include_router(meta.router, prefix="/api/v1", tags=["meta"])
-
-# sistem login + project (router baru)
 app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
 app.include_router(projects.router, prefix="/api/v1", tags=["projects"])
 
@@ -75,7 +74,6 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
 
 @app.get("/run-psha")
 def run_psha(lat: float, lon: float, rp: int = 475):
