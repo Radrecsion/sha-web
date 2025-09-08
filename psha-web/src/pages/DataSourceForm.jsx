@@ -32,7 +32,7 @@ export default function DataSourceForm({ datasources, setDatasources }) {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold">List Sumber Gempa</h2>
         <button
