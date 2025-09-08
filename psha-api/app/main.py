@@ -35,7 +35,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="PSHA API", version="1.0.0")
 
 # 🔒 Enforce HTTPS via X-Forwarded-Proto (portable)
-app.add_middleware(ProxyHTTPSRedirectMiddleware)
+# app.add_middleware(ProxyHTTPSRedirectMiddleware)
 
 # 🌍 Ambil origin dari FRONTEND_URL
 frontend_url = settings.FRONTEND_URL
