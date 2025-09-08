@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Menu, Sun, Moon } from "lucide-react";
 import LoginModal from "../../modals/LoginModal";
 import ProfileModal from "../../modals/ProfileModal";
@@ -13,17 +13,14 @@ export default function Topbar({
   user: userProp,
   onUserUpdate,
 }) {
-
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
 
   const handleLogout = () => {
     localStorage.removeItem("username");
     localStorage.removeItem("avatar");
     localStorage.removeItem("access_token");
-    setUser(null);
     setIsDropdownOpen(false);
     if (onUserUpdate) onUserUpdate(null);
   };
@@ -42,7 +39,10 @@ export default function Topbar({
       <div className="px-4 py-3 flex justify-between items-center">
         {/* Left */}
         <div className="flex items-center space-x-4">
-          <button onClick={onMenuToggle} className="md:hidden p-2 rounded-lg hover:bg-[var(--hover)]">
+          <button
+            onClick={onMenuToggle}
+            className="md:hidden p-2 rounded-lg hover:bg-[var(--hover)]"
+          >
             <Menu size={24} />
           </button>
           <span className="text-xl font-bold">SHA-Web</span>
@@ -50,20 +50,23 @@ export default function Topbar({
 
         {/* Right */}
         <div className="flex items-center space-x-4">
-          {user ? (
+          {userProp ? (
             <>
               {renderButton("New Project", onNewProject, "bg-green-500 text-white")}
               {/* User Dropdown */}
               <div className="relative">
-                <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-                  {user.avatar ? (
-                    <img src={user.avatar} className="w-8 h-8 rounded-full" />
+                <div
+                  className="flex items-center space-x-2 cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  {userProp.avatar ? (
+                    <img src={userProp.avatar} className="w-8 h-8 rounded-full" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
-                      {user.username?.[0]?.toUpperCase() || "U"}
+                      {userProp.username?.[0]?.toUpperCase() || "U"}
                     </div>
                   )}
-                  <span>{user.username || ""}</span>
+                  <span>{userProp.username || ""}</span>
                 </div>
 
                 {isDropdownOpen && (
@@ -77,10 +80,16 @@ export default function Topbar({
                     >
                       Profile
                     </button>
-                    <button className="block w-full text-left px-3 py-2 hover:bg-gray-600" onClick={() => setIsDropdownOpen(false)}>
+                    <button
+                      className="block w-full text-left px-3 py-2 hover:bg-gray-600"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
                       Settings
                     </button>
-                    <button className="block w-full text-left px-3 py-2 hover:bg-gray-600" onClick={handleLogout}>
+                    <button
+                      className="block w-full text-left px-3 py-2 hover:bg-gray-600"
+                      onClick={handleLogout}
+                    >
                       Logout
                     </button>
                   </div>
@@ -91,7 +100,11 @@ export default function Topbar({
             renderButton("Login", () => setShowLoginModal(true), "hover:text-blue-400")
           )}
 
-          <button onClick={onThemeToggle} className="p-2 rounded-lg hover:bg-[var(--hover)] transition" title="Toggle theme">
+          <button
+            onClick={onThemeToggle}
+            className="p-2 rounded-lg hover:bg-[var(--hover)] transition"
+            title="Toggle theme"
+          >
             {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
@@ -101,11 +114,10 @@ export default function Topbar({
       {showLoginModal && (
         <LoginModal
           apiUrl={apiUrl}
-          theme={theme} // gunakan prop theme
+          theme={theme}
           show={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onLogin={(userData) => {
-            setUser(userData);
             localStorage.setItem("access_token", userData.token || "");
             localStorage.setItem("username", userData.username);
             localStorage.setItem("avatar", userData.avatar || "");
@@ -116,12 +128,11 @@ export default function Topbar({
       )}
 
       {/* Profile Modal */}
-      {showProfileModal && user && (
+      {showProfileModal && userProp && (
         <ProfileModal
-          user={user}
+          user={userProp}
           onClose={() => setShowProfileModal(false)}
           onUpdate={(updatedUser) => {
-            setUser(updatedUser);
             if (onUserUpdate) onUserUpdate(updatedUser);
           }}
         />

@@ -14,15 +14,28 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl }) {
     setLoading(true);
     setErrorMsg("");
     try {
-      await axios.post(
+      // 1. Login untuk dapatkan token
+      const loginRes = await axios.post(
         `${apiUrl}/auth/login`,
         `username=${username}&password=${password}`,
         { headers: { "Content-Type": "application/x-www-form-urlencoded" }, withCredentials: true }
       );
 
-      const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
-      if (res.data.email) {
-        const userData = { username: res.data.email, avatar: res.data.avatar || "" };
+      const token =
+        loginRes.data?.access_token ||
+        loginRes.data?.token ||
+        null;
+
+      // 2. Ambil data user
+      const meRes = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
+      if (meRes.data.email) {
+        const userData = {
+          username: meRes.data.email,
+          avatar: meRes.data.avatar || "",
+          token: token, // ✅ penting buat Sidebar & API
+        };
+
+        // lempar balik ke parent
         onLogin(userData);
       }
     } catch (err) {
@@ -34,7 +47,9 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl }) {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(window.location.href)}`;
+    window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(
+      window.location.href
+    )}`;
   };
 
   // Ambil theme langsung dari html
