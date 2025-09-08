@@ -83,19 +83,25 @@ export default function App({ activeTab, setActiveTab }) {
   }, []);
 
   /** ================== FETCH DATA ================== */
-  useEffect(() => {
-    const fetchDatasources = async () => {
-      try {
-        const res = await fetch(`${API_URL}/datasource/`);
-        if (!res.ok) throw new Error(`Fetch datasource status: ${res.status}`);
-        const data = await res.json();
-        setDatasources(Array.isArray(data) ? data : data.data || []);
-      } catch (err) {
-        console.error("Gagal fetch datasources:", err);
-        setDatasources([]);
-      }
-    };
+  // auto fetch hanya untuk datasource
+useEffect(() => {
+  const fetchDatasources = async () => {
+    try {
+      const res = await fetch(`${API_URL}/datasource/`);
+      if (!res.ok) throw new Error(`Fetch datasource status: ${res.status}`);
+      const data = await res.json();
+      setDatasources(Array.isArray(data) ? data : data.data || []);
+    } catch (err) {
+      console.error("Gagal fetch datasources:", err);
+      setDatasources([]);
+    }
+  };
+  fetchDatasources();
+}, []);
 
+// lazy fetch GMPE hanya saat tab "gmpe" dipilih
+useEffect(() => {
+  if (activeTab === "gmpe" && gmpeList.length === 0) {
     const fetchGmpes = async () => {
       try {
         const res = await fetch(`${API_URL}/gmpe/`);
@@ -107,10 +113,10 @@ export default function App({ activeTab, setActiveTab }) {
         setGmpeList([]);
       }
     };
-
-    fetchDatasources();
     fetchGmpes();
-  }, []);
+  }
+}, [activeTab]);
+
 
   /** ================== HANDLERS ================== */
   const handleRun = ({ result, siteData, selectedSources, selectedGmpes, error }) => {

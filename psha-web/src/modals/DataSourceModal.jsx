@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Polyline, Marker, Popup, Polygon, useMap } fro
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import BaseModal from "./BaseModal";
+import GmpeSelect from "../components/gmpe/GmpeSelect";
 
 export default function DataSourceModal({ onClose, onSaved, initialData }) {
   const [form, setForm] = useState({
@@ -18,6 +19,10 @@ export default function DataSourceModal({ onClose, onSaved, initialData }) {
     gr_weight: "",
     dipAngle: "", // Menambahkan input angle
     strikeAngle: "",
+    gmpe_weights: [
+    { gmpe_id: "", weight: 0 },
+    { gmpe_id: "", weight: 0 },
+    { gmpe_id: "", weight: 0 },],
   });
 
   const [saving, setSaving] = useState(false);
@@ -26,6 +31,10 @@ export default function DataSourceModal({ onClose, onSaved, initialData }) {
   const [showPreview, setShowPreview] = useState(false);
   const [mechanisms, setMechanisms] = useState([]);
   const canvasRef = useRef(null);
+  const [gmpeList, setGmpeList] = useState([]);
+  const [loadingGmpe, setLoadingGmpe] = useState(true);
+  const [errorGmpe, setErrorGmpe] = useState(null);
+
 
   // Load daftar mechanism dari backend
   useEffect(() => {
@@ -129,8 +138,11 @@ async function handleSubmit(e) {
       gr_beta: form.gr_beta ? parseFloat(form.gr_beta) : undefined,
       gr_rate: form.gr_rate ? parseFloat(form.gr_rate) : undefined,
       gr_weight: form.gr_weight ? parseFloat(form.gr_weight) : undefined,
-      dipAngle: form.dipAngle ? parseFloat(form.dipAngle) : undefined,  // Menambahkan dipAngle
-      strikeAngle: form.strikeAngle ? parseFloat(form.strikeAngle) : undefined,  // Menambahkan strikeAngle
+      dipAngle: form.dipAngle ? parseFloat(form.dipAngle) : undefined,
+      strikeAngle: form.strikeAngle ? parseFloat(form.strikeAngle) : undefined,
+      gmpe_weights: form.gmpe_weights
+        .filter((g) => g.gmpe_id) // hanya kirim yang terisi
+        .map((g) => ({ gmpe_id: g.gmpe_id, weight: g.weight })),
     };
 
     try {
@@ -318,6 +330,50 @@ async function handleSubmit(e) {
             </div>
           </div>
         </div>
+
+        {/* GMPE Models */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Attenuation Models (GMPE)</label>
+          <div className="space-y-2">
+            {form.gmpe_weights.map((gmpe, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <span className="w-24">Model-{idx + 1}</span>
+                <select
+                  className="flex-1 border p-2 rounded"
+                  value={gmpe.gmpe_id}
+                  onChange={(e) => {
+                    const updated = [...form.gmpe_weights];
+                    updated[idx] = { ...updated[idx], gmpe_id: parseInt(e.target.value) || "" };
+                    setForm({ ...form, gmpe_weights: updated });
+                  }}
+                >
+                  <GmpeSelect />
+                </select>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="w-24 border p-2 rounded"
+                  value={gmpe.weight}
+                  onChange={(e) => {
+                    const updated = [...form.gmpe_weights];
+                    updated[idx] = { ...updated[idx], weight: parseFloat(e.target.value) || 0 };
+                    setForm({ ...form, gmpe_weights: updated });
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Total weight info */}
+        <div className="text-sm mt-1">
+          Total weight ={" "}
+          <strong>
+            {form.gmpe_weights.reduce((s, g) => s + (parseFloat(g.weight) || 0), 0).toFixed(2)}
+          </strong>{" "}
+          / harus = 1.0
+        </div>
+
 
         {/* Preview Button */}
         <button
