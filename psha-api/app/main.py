@@ -1,3 +1,4 @@
+from app.middleware.https_redirect import ProxyHTTPSRedirectMiddleware
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -5,10 +6,11 @@ import numpy as np
 import time
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
-from urllib.parse import urlparse  # untuk ambil origin
+from urllib.parse import urlparse
 from app.routers import gmpe, datasource, analysis, hazard, mechanism, meta, auth, projects
 from app.database import Base
 from app.core.config import settings
+
 
 # ======= Setup DB dengan retry =======
 DATABASE_URL = settings.DATABASE_URL
@@ -27,14 +29,19 @@ for i in range(max_retries):
 else:
     raise RuntimeError("❌ Could not connect to database after several retries")
 
-# Buat tabel di DB jika belum ada
 Base.metadata.create_all(bind=engine)
 
 # ======= FastAPI app =======
 app = FastAPI(title="PSHA API", version="1.0.0")
 
-# Tambahkan ini PALING ATAS
-app.add_middleware(HTTPSRedirectMiddleware)
+# 🔒 Enforce HTTPS via X-Forwarded-Proto (portable)
+app.add_middleware(ProxyHTTPSRedirectMiddleware)
+
+# 🌍 Ambil origin dari FRONTEND_URL
+frontend_url = settings.FRONTEND_URL
+parsed = urlparse(frontend_url)
+frontend_origin = f"{parsed.scheme}://{parsed.netloc}"
+print(f"🔗 FRONTEND_ORIGIN = {frontend_origin}")
 
 # ----- Session Middleware -----
 app.add_middleware(
@@ -45,16 +52,13 @@ app.add_middleware(
 )
 
 # ======= CORS Setup =======
-# Pastikan FRONTEND_URL tanpa path, hanya origin
-frontend_url = settings.FRONTEND_URL
-parsed = urlparse(frontend_url)
-frontend_origin = f"{parsed.scheme}://{parsed.netloc}"
-
-print(f"🔗 FRONTEND_ORIGIN = {frontend_origin}")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_ORIGIN],
+    allow_origins=[
+        frontend_origin,  # GitHub Pages
+        "https://sha-web-production.up.railway.app",  # API sendiri
+        "http://localhost:5173",  # dev lokal
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
