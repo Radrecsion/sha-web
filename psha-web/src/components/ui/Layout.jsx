@@ -2,18 +2,16 @@ import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
-export const API_URL = window.RUNTIME_CONFIG?.API_URL || "http://localhost:8000/api/v1";
+export const API_URL =
+  window.RUNTIME_CONFIG?.API_URL || "https://sha-api-production.up.railway.app/api/v1";
 
-export default function Layout({ children }) {
-  const savedTheme = localStorage.getItem("theme") || "light";
-
-  const [activeTab, setActiveTab] = useState("analysis");
+export default function Layout({ children, activeTab, setActiveTab }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState(savedTheme);
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [currentProject, setCurrentProject] = useState(null);
   const [user, setUser] = useState(null);
 
-  /** ================== AMBIL USER ================== */
+  /** ================== LOAD USER ================== */
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
@@ -27,26 +25,31 @@ export default function Layout({ children }) {
       localStorage.setItem("avatar", avatar || "");
       setUser(userData);
 
-      // bersihkan URL query
+      // bersihkan query string
       window.history.replaceState({}, document.title, window.location.pathname);
     } else {
       const localToken = localStorage.getItem("access_token");
       const localUsername = localStorage.getItem("username");
       const localAvatar = localStorage.getItem("avatar");
-      if (localToken && localUsername)
+      if (localToken && localUsername) {
         setUser({ username: localUsername, token: localToken, avatar: localAvatar });
+      }
     }
   }, []);
 
   /** ================== SYNC THEME ================== */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+  const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("avatar");
   };
 
   return (
@@ -62,20 +65,21 @@ export default function Layout({ children }) {
 
       {/* Main Wrapper */}
       <div className="flex-1 flex flex-col">
-        {/* Topbar */}
         <Topbar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onNewProject={() => console.log("New project")}
           onMenuToggle={() => setSidebarOpen((v) => !v)}
           theme={theme}
+          toggleTheme={toggleTheme}
           user={user}
           apiUrl={API_URL}
-          onUserUpdate={setUser} // update user setelah login/logout
+          onUserUpdate={setUser}
+          onLogout={handleLogout}
           onHelp={() => console.log("Help clicked")}
+          currentProject={currentProject}
         />
 
-        {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6 pt-14 md:ml-64 transition-colors duration-300">
           {children}
         </main>

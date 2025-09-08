@@ -5,9 +5,6 @@ import Toast from "./components/ui/Toast";
 import DataSourceForm from "./pages/DataSourceForm";
 import GmpePage from "./pages/GmpePage";
 
-import Sidebar from "./components/ui/Sidebar";
-import Topbar from "./components/ui/Topbar";
-
 import SaveProjectModal from "./modals/SaveProjectModal";
 import HelpModal from "./modals/HelpModal";
 import LoginModal from "./modals/LoginModal";
@@ -18,8 +15,8 @@ import axios from "axios";
 export const API_URL =
   window.RUNTIME_CONFIG?.API_URL || "https://sha-api-production.up.railway.app/api/v1";
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState("analysis");
+export default function App({ activeTab, setActiveTab }) {
+  /** ================== STATE ================== */
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
@@ -37,7 +34,6 @@ export default function App() {
 
   const [currentProject, setCurrentProject] = useState(null);
   const [user, setUser] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   /** ================== CHECK LOGIN ================== */
   useEffect(() => {
@@ -129,16 +125,6 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const handleNewProject = () => {
-    setSiteData({});
-    setDatasources([]);
-    setSelectedSources([]);
-    setSelectedGmpes([]);
-    setCurrentProject(null);
-    setToast({ type: "info", message: "New project started!" });
-    setTimeout(() => setToast(null), 3000);
-  };
-
   const handleSaveProject = (name) => {
     if (!user) {
       setToast({ type: "error", message: "Login dulu sebelum menyimpan project!" });
@@ -170,60 +156,38 @@ export default function App() {
     setSelectedGmpes(project.selectedGmpes || []);
     setCurrentProject(project);
 
-    setActiveTab("analysis");
+    setActiveTab("analysis"); // 🔑 pakai props dari main.jsx
     setToast({ type: "info", message: `Project "${project.name}" loaded!` });
     setTimeout(() => setToast(null), 3000);
   };
 
   /** ================== RENDER ================== */
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <Topbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onNewProject={handleNewProject}
-        onMenuToggle={() => setSidebarOpen((v) => !v)}
-        user={user}
-        apiUrl={API_URL}
-        onUserUpdate={setUser}
-      />
+    <>
+      <Toast toast={toast} />
 
-      <div className="flex flex-1 pt-14">
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
-          setCurrentProject={setCurrentProject}
-        />
+      {activeTab === "analysis" && (
+        <>
+          <AnalysisTabs
+            siteData={siteData}
+            setSiteData={setSiteData}
+            datasources={datasources}
+            gmpeList={gmpeList}
+            selectedSources={selectedSources}
+            setSelectedSources={setSelectedSources}
+            selectedGmpes={selectedGmpes}
+            setSelectedGmpes={setSelectedGmpes}
+            onRunResult={handleRun}
+          />
+          {result && <ResultPage result={result} error={error} />}
+        </>
+      )}
 
-        <main className="flex-1 p-6 overflow-y-auto">
-          <Toast toast={toast} />
+      {activeTab === "datasource" && (
+        <DataSourceForm datasources={datasources} setDatasources={setDatasources} />
+      )}
 
-          {activeTab === "analysis" && (
-            <>
-              <AnalysisTabs
-                siteData={siteData}
-                setSiteData={setSiteData}
-                datasources={datasources}
-                gmpeList={gmpeList}
-                selectedSources={selectedSources}
-                setSelectedSources={setSelectedSources}
-                selectedGmpes={selectedGmpes}
-                setSelectedGmpes={setSelectedGmpes}
-                onRunResult={handleRun}
-              />
-              {result && <ResultPage result={result} error={error} />}
-            </>
-          )}
-
-          {activeTab === "datasource" && (
-            <DataSourceForm datasources={datasources} setDatasources={setDatasources} />
-          )}
-
-          {activeTab === "gmpe" && <GmpePage gmpeList={gmpeList} />}
-        </main>
-      </div>
+      {activeTab === "gmpe" && <GmpePage gmpeList={gmpeList} />}
 
       <SaveProjectModal
         isOpen={isSaveOpen}
@@ -245,6 +209,6 @@ export default function App() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }

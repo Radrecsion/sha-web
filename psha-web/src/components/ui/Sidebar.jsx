@@ -6,7 +6,8 @@ export default function Sidebar({
   setIsOpen,
   activeTab,
   setActiveTab,
-  setCurrentProject, // prop baru
+  setCurrentProject,
+  apiUrl = "https://sha-api-production.up.railway.app/api/v1", // fallback
 }) {
   const [animate, setAnimate] = useState("");
   const [projects, setProjects] = useState([]);
@@ -19,6 +20,7 @@ export default function Sidebar({
     { key: "gmpe", label: "Attenuation" },
   ];
 
+  /** ================== ANIMASI SIDEBAR ================== */
   useEffect(() => {
     if (isOpen) {
       setAnimate("animate-slide-in");
@@ -29,12 +31,14 @@ export default function Sidebar({
     }
   }, [isOpen]);
 
+  /** ================== LOAD USER ================== */
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const username = localStorage.getItem("username");
     if (token && username) setUser({ username, token });
   }, []);
 
+  /** ================== FETCH PROJECTS ================== */
   useEffect(() => {
     if (!user?.token) {
       setProjects([]);
@@ -43,10 +47,9 @@ export default function Sidebar({
 
     const fetchProjects = async () => {
       try {
-        const res = await axios.get(
-          "https://sha-api-production.up.railway.app/api/v1/projects",
-          { headers: { Authorization: `Bearer ${user.token}` } }
-        );
+        const res = await axios.get(`${apiUrl}/projects`, {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
         setProjects(res.data);
       } catch (err) {
         console.error("Gagal fetch project:", err);
@@ -55,13 +58,13 @@ export default function Sidebar({
     };
 
     fetchProjects();
-  }, [user]);
+  }, [user, apiUrl]);
 
+  /** ================== HANDLER ================== */
   const handleLoadProject = (proj) => {
-    // set tab ke analysis dan kirim project ke state global
-    setActiveTab("analysis");
-    setCurrentProject(proj);
-    setIsOpen(false); // tutup drawer jika mobile
+    setActiveTab("analysis"); // langsung ke tab analysis
+    setCurrentProject(proj); // simpan project global
+    setIsOpen(false); // tutup drawer mobile
   };
 
   const handleDeleteProject = async (proj) => {
@@ -69,12 +72,13 @@ export default function Sidebar({
     if (!confirm(`Delete project "${proj.name}"?`)) return;
 
     try {
-      await axios.delete(
-        `https://sha-api-production.up.railway.app/api/v1/projects/${proj.id}`,
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
+      await axios.delete(`${apiUrl}/projects/${proj.id}`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
       setProjects(projects.filter((p) => p.id !== proj.id));
-      if (setCurrentProject && setCurrentProject.id === proj.id) setCurrentProject(null);
+
+      // kalau project aktif yang dihapus → reset
+      setCurrentProject((prev) => (prev?.id === proj.id ? null : prev));
     } catch (err) {
       console.error("Gagal hapus project:", err);
       alert("Gagal hapus project");
@@ -86,7 +90,8 @@ export default function Sidebar({
     setContextMenu({ visible: true, x: e.pageX, y: e.pageY, project: proj });
   };
 
-  const closeContextMenu = () => setContextMenu({ visible: false, x: 0, y: 0, project: null });
+  const closeContextMenu = () =>
+    setContextMenu({ visible: false, x: 0, y: 0, project: null });
 
   const renderProjectList = () =>
     projects.length > 0 ? (
@@ -104,16 +109,19 @@ export default function Sidebar({
       <p className="text-sm text-gray-400">No projects found</p>
     );
 
+  /** ================== RENDER ================== */
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 h-screen fixed top-14 left-0 bg-[var(--card)] text-[var(--text)] shadow">
+      <aside className="hidden md:flex flex-col w-64 h-screen fixed top-14 left-0 bg-[var(--card)] text-[var(--text)] shadow pt-2">
         <nav className="flex flex-col space-y-2 p-4">
           {menu.map((item) => (
             <button
               key={item.key}
               className={`text-left px-3 py-2 rounded-lg transition ${
-                activeTab === item.key ? "bg-blue-600 text-white" : "hover:bg-[var(--hover)]"
+                activeTab === item.key
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-[var(--hover)]"
               }`}
               onClick={() => setActiveTab(item.key)}
             >
@@ -121,6 +129,7 @@ export default function Sidebar({
             </button>
           ))}
         </nav>
+
         {user && (
           <>
             <hr className="my-2 border-gray-500" />
@@ -155,7 +164,9 @@ export default function Sidebar({
                 <button
                   key={item.key}
                   className={`text-left px-3 py-2 rounded-lg transition ${
-                    activeTab === item.key ? "bg-blue-600 text-white" : "hover:bg-[var(--hover)]"
+                    activeTab === item.key
+                      ? "bg-blue-600 text-white"
+                      : "hover:bg-[var(--hover)]"
                   }`}
                   onClick={() => {
                     setActiveTab(item.key);

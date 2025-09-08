@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, Sun, Moon } from "lucide-react";
+import { Menu, Sun, Moon, HelpCircle } from "lucide-react";
 import LoginModal from "../../modals/LoginModal";
 import ProfileModal from "../../modals/ProfileModal";
 
@@ -7,23 +7,16 @@ export default function Topbar({
   onNewProject,
   onHelp,
   theme,
-  onThemeToggle,
+  toggleTheme, // ✅ konsisten dengan Layout
   onMenuToggle,
   apiUrl,
   user,
   onUserUpdate,
+  onLogout,
 }) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  const handleLogout = () => {
-    localStorage.removeItem("username");
-    localStorage.removeItem("avatar");
-    localStorage.removeItem("access_token");
-    if (onUserUpdate) onUserUpdate(null);
-    setIsDropdownOpen(false);
-  };
 
   const renderButton = (label, onClick, colorClass) => (
     <button
@@ -71,7 +64,7 @@ export default function Topbar({
                 </div>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-[var(--card)] shadow-lg rounded border border-gray-600 z-50">
+                  <div className="absolute right-0 mt-2 w-40 bg-[var(--card)] shadow-lg rounded-lg border border-gray-600 z-50">
                     <button
                       className="block w-full text-left px-3 py-2 hover:bg-gray-600"
                       onClick={() => {
@@ -89,7 +82,10 @@ export default function Topbar({
                     </button>
                     <button
                       className="block w-full text-left px-3 py-2 hover:bg-gray-600"
-                      onClick={handleLogout}
+                      onClick={() => {
+                        if (onLogout) onLogout();
+                        setIsDropdownOpen(false);
+                      }}
                     >
                       Logout
                     </button>
@@ -101,8 +97,18 @@ export default function Topbar({
             renderButton("Login", () => setShowLoginModal(true), "hover:text-blue-400")
           )}
 
+          {/* Help button */}
           <button
-            onClick={onThemeToggle}
+            onClick={onHelp}
+            className="p-2 rounded-lg hover:bg-[var(--hover)] transition"
+            title="Help"
+          >
+            <HelpCircle size={20} />
+          </button>
+
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-[var(--hover)] transition"
             title="Toggle theme"
           >
@@ -115,8 +121,7 @@ export default function Topbar({
       {showLoginModal && (
         <LoginModal
           apiUrl={apiUrl}
-          theme={theme} // ✅ kirim theme ke LoginModal
-          show={showLoginModal}
+          theme={theme}
           onClose={() => setShowLoginModal(false)}
           onLogin={(userData) => {
             localStorage.setItem("access_token", userData.token || "");
