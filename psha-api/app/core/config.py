@@ -2,6 +2,7 @@
 from pydantic_settings import BaseSettings
 import os
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 # 1️⃣ Tentukan environment dan load .env
 env_mode = os.environ.get("ENVIRONMENT", "development").lower()
@@ -35,6 +36,12 @@ class Settings(BaseSettings):
         "FRONTEND_URL",
         "http://localhost:5173" if env_mode == "development" else "https://radrecsion.github.io/sha-web/"
     )
+
+    @property
+    def FRONTEND_ORIGIN(self) -> str:
+        """Ambil origin tanpa path untuk CORS"""
+        parsed = urlparse(self.FRONTEND_URL)
+        return f"{parsed.scheme}://{parsed.netloc}"
 
     class Config:
         env_file = None  # sudah load manual

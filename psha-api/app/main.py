@@ -51,7 +51,7 @@ print(f"🔗 FRONTEND_ORIGIN = {frontend_origin}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_origin],
+    allow_origins=[settings.FRONTEND_ORIGIN],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
