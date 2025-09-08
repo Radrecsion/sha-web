@@ -33,6 +33,9 @@ Base.metadata.create_all(bind=engine)
 # ======= FastAPI app =======
 app = FastAPI(title="PSHA API", version="1.0.0")
 
+# Tambahkan ini PALING ATAS
+app.add_middleware(HTTPSRedirectMiddleware)
+
 # ----- Session Middleware -----
 app.add_middleware(
     SessionMiddleware,

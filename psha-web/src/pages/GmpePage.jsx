@@ -5,14 +5,22 @@ export default function GmpePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openId, setOpenId] = useState(null);
-  const API_URL = import.meta.env.VITE_API_URL || "🚨 ENV VITE_API_URL TIDAK KEBACA";
+
+  // 🔧 Ambil dari env, fallback ke Railway API langsung
+  const API_URL =
+    import.meta.env.VITE_API_URL?.startsWith("http")
+      ? import.meta.env.VITE_API_URL
+      : "https://sha-api-production.up.railway.app/api/v1";
 
   useEffect(() => {
     async function fetchGmpe() {
       try {
-        const baseUrl = import.meta.env.VITE_API_URL || "";
-        const res = await fetch(`${baseUrl}/gmpe`);
+        const url = `${API_URL}/gmpe`;
+        console.log("📡 Fetching GMPE dari:", url);
+
+        const res = await fetch(url, { method: "GET" });
         if (!res.ok) throw new Error(`Fetch status: ${res.status}`);
+
         const data = await res.json();
         setGmpeList(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
@@ -23,11 +31,7 @@ export default function GmpePage() {
       }
     }
     fetchGmpe();
-  }, []);
-  
-  console.log("API URL:", API_URL);
-
-
+  }, [API_URL]);
 
   if (loading) return <div className="p-4">⏳ Memuat data GMPE...</div>;
   if (error) return <div className="p-4 text-red-500">❌ {error}</div>;
@@ -110,9 +114,7 @@ export default function GmpePage() {
                     </table>
                   </div>
                 ) : (
-                  <p className="opacity-70">
-                    Koefisien GMPE tidak tersedia
-                  </p>
+                  <p className="opacity-70">Koefisien GMPE tidak tersedia</p>
                 )}
               </div>
             )}
