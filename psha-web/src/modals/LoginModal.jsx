@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 
-export default function LoginModal({ show, onClose, onLogin, apiUrl }) {
+export default function LoginModal({ show, onClose, onLogin, apiUrl, theme }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,28 +14,21 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl }) {
     setLoading(true);
     setErrorMsg("");
     try {
-      // 1. Login untuk dapatkan token
-      const loginRes = await axios.post(
+      await axios.post(
         `${apiUrl}/auth/login`,
         `username=${username}&password=${password}`,
-        { headers: { "Content-Type": "application/x-www-form-urlencoded" }, withCredentials: true }
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          withCredentials: true,
+        }
       );
 
-      const token =
-        loginRes.data?.access_token ||
-        loginRes.data?.token ||
-        null;
-
-      // 2. Ambil data user
-      const meRes = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
-      if (meRes.data.email) {
+      const res = await axios.get(`${apiUrl}/auth/me`, { withCredentials: true });
+      if (res.data.email) {
         const userData = {
-          username: meRes.data.email,
-          avatar: meRes.data.avatar || "",
-          token: token, // ✅ penting buat Sidebar & API
+          username: res.data.email,
+          avatar: res.data.avatar || "",
         };
-
-        // lempar balik ke parent
         onLogin(userData);
       }
     } catch (err) {
@@ -52,13 +45,12 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl }) {
     )}`;
   };
 
-  // Ambil theme langsung dari html
-  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
-
   return (
     <>
+      {/* Overlay */}
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={onClose} />
 
+      {/* Modal Box */}
       <div className="fixed z-50 top-1/2 left-1/2 w-full max-w-md p-6 bg-[var(--card)] text-[var(--text)] rounded-lg shadow-lg transform -translate-x-1/2 -translate-y-1/2">
         <h2 className="text-lg font-bold mb-4 text-center">Login</h2>
 
@@ -78,9 +70,12 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl }) {
           disabled={loading}
         />
 
-        {errorMsg && <p className="text-red-500 text-sm mb-2 text-center">{errorMsg}</p>}
+        {errorMsg && (
+          <p className="text-red-500 text-sm mb-2 text-center">{errorMsg}</p>
+        )}
 
         <div className="flex flex-col space-y-2">
+          {/* Normal Login */}
           <button
             onClick={handleLogin}
             className="w-full px-4 py-2 bg-blue-500 text-white rounded flex justify-center items-center"
@@ -89,10 +84,11 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl }) {
             {loading ? "Logging in..." : "Login"}
           </button>
 
+          {/* Google Login */}
           <button
             onClick={handleGoogleLogin}
             className={`flex items-center justify-center w-full border rounded px-3 py-2 transition-colors ${
-              currentTheme === "dark"
+              theme === "dark"
                 ? "bg-gray-800 text-white hover:bg-gray-700"
                 : "bg-white text-black hover:bg-gray-100"
             }`}
@@ -102,7 +98,12 @@ export default function LoginModal({ show, onClose, onLogin, apiUrl }) {
             Login with Google
           </button>
 
-          <button onClick={onClose} className="w-full px-4 py-2 border rounded" disabled={loading}>
+          {/* Cancel */}
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 border rounded"
+            disabled={loading}
+          >
             Cancel
           </button>
         </div>

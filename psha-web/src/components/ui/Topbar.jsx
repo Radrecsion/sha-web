@@ -10,7 +10,7 @@ export default function Topbar({
   onThemeToggle,
   onMenuToggle,
   apiUrl,
-  user: userProp,
+  user,
   onUserUpdate,
 }) {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -21,8 +21,8 @@ export default function Topbar({
     localStorage.removeItem("username");
     localStorage.removeItem("avatar");
     localStorage.removeItem("access_token");
-    setIsDropdownOpen(false);
     if (onUserUpdate) onUserUpdate(null);
+    setIsDropdownOpen(false);
   };
 
   const renderButton = (label, onClick, colorClass) => (
@@ -50,23 +50,24 @@ export default function Topbar({
 
         {/* Right */}
         <div className="flex items-center space-x-4">
-          {userProp ? (
+          {user ? (
             <>
               {renderButton("New Project", onNewProject, "bg-green-500 text-white")}
+
               {/* User Dropdown */}
               <div className="relative">
                 <div
                   className="flex items-center space-x-2 cursor-pointer"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
-                  {userProp.avatar ? (
-                    <img src={userProp.avatar} className="w-8 h-8 rounded-full" />
+                  {user.avatar ? (
+                    <img src={user.avatar} className="w-8 h-8 rounded-full" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
-                      {userProp.username?.[0]?.toUpperCase() || "U"}
+                      {user.username?.[0]?.toUpperCase() || "U"}
                     </div>
                   )}
-                  <span>{userProp.username || ""}</span>
+                  <span>{user.username || ""}</span>
                 </div>
 
                 {isDropdownOpen && (
@@ -114,7 +115,7 @@ export default function Topbar({
       {showLoginModal && (
         <LoginModal
           apiUrl={apiUrl}
-          theme={theme}
+          theme={theme} // ✅ kirim theme ke LoginModal
           show={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onLogin={(userData) => {
@@ -128,9 +129,9 @@ export default function Topbar({
       )}
 
       {/* Profile Modal */}
-      {showProfileModal && userProp && (
+      {showProfileModal && user && (
         <ProfileModal
-          user={userProp}
+          user={user}
           onClose={() => setShowProfileModal(false)}
           onUpdate={(updatedUser) => {
             if (onUserUpdate) onUserUpdate(updatedUser);
