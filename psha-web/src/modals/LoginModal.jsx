@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 
-export default function LoginModal({ show, onClose, onLogin, apiUrl, theme }) {
+export default function LoginModal({ show, onClose, onLogin, apiUrl, theme = "light" }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
