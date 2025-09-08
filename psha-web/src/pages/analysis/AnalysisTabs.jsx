@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Tab } from "@headlessui/react";
+import { AnimatePresence, motion } from "framer-motion";
 import SiteParameterTab from "./SiteParameterTab";
 import SeismicModelTab from "./SeismicModelTab";
 import AnalysisConclusionTab from "./AnalysisConclusionTab";
@@ -58,44 +59,72 @@ export default function AnalysisTabs({ datasources, onRunResult }) {
       <Tab.Group selectedIndex={activeTab} onChange={setActiveTab}>
         <div className="tab-wrapper">
           <Tab.List className="tab-list">
-            {tabs.map((tab) => (
+            {tabs.map((tab, idx) => (
               <Tab key={tab} className="tab-item group">
                 {tab}
               </Tab>
             ))}
           </Tab.List>
 
-          <Tab.Panels className="p-4 sm:p-6">
-            <Tab.Panel className="tab-panel">
-              <SiteParameterTab siteData={siteData} setSiteData={setSiteData} />
-            </Tab.Panel>
+          <Tab.Panels className="p-4 sm:p-6 relative">
+            <AnimatePresence mode="wait">
+              {activeTab === 0 && (
+                <motion.div
+                  key="site"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="tab-panel"
+                >
+                  <SiteParameterTab siteData={siteData} setSiteData={setSiteData} />
+                </motion.div>
+              )}
 
-            <Tab.Panel className="tab-panel">
-              <SeismicModelTab
-                datasources={datasources}
-                selectedSources={selectedSources}
-                setSelectedSources={setSelectedSources}
-                selectedGmpes={selectedGmpes}
-                setSelectedGmpes={setSelectedGmpes}
-                siteParameter={siteData?.siteType}
-              />
-            </Tab.Panel>
+              {activeTab === 1 && (
+                <motion.div
+                  key="seismic"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="tab-panel"
+                >
+                  <SeismicModelTab
+                    datasources={datasources}
+                    selectedSources={selectedSources}
+                    setSelectedSources={setSelectedSources}
+                    selectedGmpes={selectedGmpes}
+                    setSelectedGmpes={setSelectedGmpes}
+                    siteParameter={siteData?.siteType}
+                  />
+                </motion.div>
+              )}
 
-            <Tab.Panel className="tab-panel">
-              <AnalysisConclusionTab
-                siteData={siteData}
-                selectedSources={selectedSources}
-                selectedGmpes={selectedGmpes}
-                datasources={datasources}
-                onRunResult={handleRunAnalysis}
-                loading={loading}
-                error={error}
-              />
-            </Tab.Panel>
+              {activeTab === 2 && (
+                <motion.div
+                  key="conclusion"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="tab-panel"
+                >
+                  <AnalysisConclusionTab
+                    siteData={siteData}
+                    selectedSources={selectedSources}
+                    selectedGmpes={selectedGmpes}
+                    datasources={datasources}
+                    onRunResult={handleRunAnalysis}
+                    loading={loading}
+                    error={error}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Tab.Panels>
         </div>
       </Tab.Group>
     </div>
-
   );
 }
