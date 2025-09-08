@@ -122,6 +122,7 @@ export default function Topbar({
         <LoginModal
           apiUrl={apiUrl}
           theme={theme}
+          show={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onLogin={(userData) => {
             localStorage.setItem("access_token", userData.token || "");
