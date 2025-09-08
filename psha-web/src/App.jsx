@@ -43,8 +43,9 @@ export default function App() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
-      axios.get(`${API_URL}/auth/me`, { withCredentials: true })
-        .then(res => {
+      axios
+        .get(`${API_URL}/auth/me`, { withCredentials: true })
+        .then((res) => {
           if (res.data.email) {
             setUser({
               username: res.data.email,
@@ -61,8 +62,9 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("login") === "success") {
-      axios.get(`${API_URL}/auth/me`, { withCredentials: true })
-        .then(res => {
+      axios
+        .get(`${API_URL}/auth/me`, { withCredentials: true })
+        .then((res) => {
           if (res.data.email) {
             const userData = {
               username: res.data.email,
@@ -179,12 +181,11 @@ export default function App() {
       <Topbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onNewProject={() => console.log("New project")} // opsional
-        onMenuToggle={() => setSidebarOpen(v => !v)}
-        theme={theme}
+        onNewProject={handleNewProject}
+        onMenuToggle={() => setSidebarOpen((v) => !v)}
         user={user}
         apiUrl={API_URL}
-        onUserUpdate={setUser} // <- ini penting untuk update user setelah login/logout
+        onUserUpdate={setUser}
       />
 
       <div className="flex flex-1 pt-14">
